@@ -63,6 +63,7 @@ CFLAGS="$CFLAGS $AMINO_CFLAGS $ACH_CFLAGS"
 
 AC_SEARCH_LIBS([pthread_create],[pthread])
 AC_SEARCH_LIBS([clock_gettime],[rt])
+AC_SEARCH_LIBS([timer_settime],[rt])
 AC_SEARCH_LIBS([dlopen],[dl])
 
 AC_SEARCH_LIBS([dgemm_],[openblas blas])
