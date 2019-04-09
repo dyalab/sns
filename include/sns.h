@@ -74,7 +74,7 @@ typedef double sns_real_t;
 #include <fcntl.h>
 #include <signal.h>
 #include <ach.h>
-#include <amino.h>
+#include <amino-1.0/amino.h>
 #include <syslog.h>
 
 #include "sns/util.h"

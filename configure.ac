@@ -11,10 +11,12 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # Checks for programs.
 AC_USE_SYSTEM_EXTENSIONS
+AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_CC_C99
 AM_PROG_AR
 AC_PROG_LIBTOOL
+
 
 AC_C_RESTRICT
 AC_C_INLINE
@@ -56,6 +58,9 @@ ACH_LIBS="$ACH_LIBS -lach-experimental"
 
 CFLAGS="$CFLAGS $AMINO_CFLAGS $ACH_CFLAGS"
 
+
+
+
 AC_SEARCH_LIBS([pthread_create],[pthread])
 AC_SEARCH_LIBS([clock_gettime],[rt])
 AC_SEARCH_LIBS([dlopen],[dl])
@@ -95,10 +100,17 @@ AR_FLAGS="cr"
 
 dnl # Doxygen
 m4_ifdef([DX_INIT_DOXYGEN],
-         [DX_HTML_FEATURE(ON)
-          DX_PDF_FEATURE(OFF)
-          DX_PS_FEATURE(OFF)
-          DX_INIT_DOXYGEN(ach)],
+         [AM_CONDITIONAL([DX_COND_doc],   true)
+          AM_CONDITIONAL([DX_COND_html],  true)
+          AM_CONDITIONAL([DX_COND_chm],   true)
+          AM_CONDITIONAL([DX_COND_chi],   true)
+          AM_CONDITIONAL([DX_COND_rtf],   true)
+          AM_CONDITIONAL([DX_COND_xml],   true)
+          AM_CONDITIONAL([DX_COND_ps],    true)
+          AM_CONDITIONAL([DX_COND_pdf],   true)
+          AM_CONDITIONAL([DX_COND_latex], true)
+          AM_CONDITIONAL([DX_COND_man],   true)
+         ],
          [AM_CONDITIONAL([DX_COND_doc],   false)
           AM_CONDITIONAL([DX_COND_html],  false)
           AM_CONDITIONAL([DX_COND_chm],   false)
@@ -142,6 +154,7 @@ dnl     [PYTHON_VERSION=none])
 
 dnl AM_CONDITIONAL([HAVE_PYTHON],   [test x: != x$PYTHON -a x != x$PYTHON])
 
+CXXFLAGS="$CFLAGS"
 AC_CONFIG_FILES([Makefile])
 
 AC_OUTPUT
@@ -150,7 +163,9 @@ AC_OUTPUT
 AS_BOX([SNS CONFIGURATION SUMMARY])
 AC_MSG_NOTICE([prefix:            $prefix])
 AC_MSG_NOTICE([C compiler:        $CC])
+AC_MSG_NOTICE([C++ compiler:      $CXX])
 AC_MSG_NOTICE([CFLAGS:            $CFLAGS])
+AC_MSG_NOTICE([C++ FLAGS:         $CXXFLAGS])
 
 dnl AC_MSG_NOTICE([])
 dnl AC_MSG_NOTICE([CONFIGURATION SUMMARY])

@@ -89,6 +89,10 @@ bin_PROGRAMS += snsref
 snsref_SOURCES = src/snsref.c
 snsref_LDADD = libsns.la $(AMINO_LIBS) $(ACH_LIBS)
 
+bin_PROGRAMS += snsref_interactive
+snsref_interactive_SOURCES = src/snsref_interactive.cpp
+snsref_interactive_LDADD = libsns.la $(AMINO_LIBS) $(ACH_LIBS)
+
 bin_PROGRAMS += snsrec
 snsrec_SOURCES = src/snsrec.c
 snsrec_LDADD = libsns.la $(AMINO_LIBS) $(ACH_LIBS)
