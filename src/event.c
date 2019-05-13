@@ -97,7 +97,7 @@ sns_evhandle( struct sns_evhandler *handlers,
         sns_sigcancel(chans, cancel_sigs);
     }
 
-    if( n == 1 ) {
+    if( (n == 1 && !periodic_handler) || (n == 0 && periodic_handler) ) {
         /* special case single channel so we can handle userspace */
         while( !sns_cx.shutdown) {
             errno = 0;

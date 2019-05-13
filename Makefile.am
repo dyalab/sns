@@ -81,7 +81,6 @@ snsplot_LDADD = libsns.la -lach -lamino
 bin_PROGRAMS += sns-trylock
 sns_trylock_SOURCES = src/sns-trylock.c
 
-
 bin_PROGRAMS += snslogd
 snslogd_SOURCES = src/snslogd.c
 snslogd_LDADD = libsns.la -lach -lamino
@@ -106,7 +105,6 @@ bin_PROGRAMS += snsmplex
 snsmplex_SOURCES = src/bin/mplex.c
 snsmplex_LDADD = libsns.la -lach-experimental -lach -lamino
 
-
 bin_PROGRAMS += sns-ksim
 sns_ksim_CFLAGS = $(SDL2_CFLAGS) $(GL_CFLAGS)
 sns_ksim_SOURCES = src/bin/sns-ksim.c
@@ -120,6 +118,10 @@ sns_teleopd_LDADD = libsns.la -lach-experimental -lach -lamino
 bin_PROGRAMS += sns-joyd
 sns_joyd_SOURCES = src/driver/joystick/joyd.c src/driver/joystick/js.c
 sns_joyd_LDADD = libsns.la -lach -lamino
+
+bin_PROGRAMS += sns-amino-ctrl
+sns_amino_ctrl_SOURCES = src/sns-amino-ctrl.c
+sns_amino_ctrl_LDADD = libsns.la -lach -lamino
 
 
 noinst_PROGRAMS += demo/motor-ref

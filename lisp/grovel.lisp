@@ -43,8 +43,8 @@
   ;; TODO: do this better
   (cc-flags #.(concatenate 'string
                            "-I"
-                           (directory-namestring (user-homedir-pathname))
-                           "/local/include"))
+                           ;;(directory-namestring (user-homedir-pathname))
+                           "/usr/local/include/amino-1.0"))
   (include "syslog.h")
   (include "sns.h")
   (constant (+hostname-len+ "SNS_HOSTNAME_LEN"))
