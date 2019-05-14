@@ -48,6 +48,7 @@
 #include <amino/rx/scene_sub.h>
 #include <amino/rx/scene_kin.h>
 #include <amino/rx/rx_ct.h>
+#include <amino/rx/scene_wk.h>
 
 #include <amino/ct/state.h>
 #include <amino/ct/traj.h>
@@ -69,14 +70,14 @@ struct joint_ctrl {
 };
 
 struct cx {
-    
-    struct aa_rx_sg_sub *sub_scenegraph;
-    struct sns_motor_map *map; //sub_scenegraph motor map
-    
+
+    struct aa_rx_sg_sub *ssg; // subscenegraph for workspace control
+    struct sns_motor_map *map; //ssg motor map
+
     struct aa_rx_sg *scenegraph;
 
     struct sns_motor_channel *ref_chan;
-    struct sns_motor_channel *state_chan;
+    struct sns_motor_channel *state_chan; // linked list of motor channels
 
     struct sns_motor_ref_set *ref_set;
     struct sns_motor_state_set *state_set;
@@ -91,7 +92,7 @@ struct cx {
     struct timespec period;
 
     struct aa_ct_state *state_act;
-    
+
     struct joint_ctrl *joint_ctrl;
 
     double *q_ref;
@@ -106,6 +107,9 @@ static void
 teleop( struct cx *cx, struct sns_msg_joystick *msg );
 
 static void
+teleop_wksp( struct cx *cx, struct sns_msg_joystick *msg );
+
+static void
 halt( struct cx *cx );
 
 void send_ref( struct cx *cx );
@@ -113,7 +117,7 @@ void send_ref( struct cx *cx );
 int
 main(int argc, char **argv)
 {
-    
+
     struct cx cx = {0};
     /* parse options */
     double opt_frequency = 100;
@@ -189,24 +193,27 @@ main(int argc, char **argv)
             }
         }
     }
-    sns_init();
-    SNS_REQUIRE(cx.ref_chan, "Need state channel");
-    SNS_REQUIRE(cx.state_chan, "Need reference channel");
+    sns_init(); // makes sure ach, sns exist, sets up data structures
+    SNS_REQUIRE(cx.ref_chan, "Need reference channel"); // ref is where you want to go
+    SNS_REQUIRE(cx.state_chan, "Need state channel"); // state is current position (maybe) This
+    // is what we're going to modify to tell robot what to do (for simulation) (probably)
     SNS_REQUIRE(opt_chan_joystick, "Need joystick channel");
-    
+
     /* Load Scene Plugin */
     cx.scenegraph = sns_scene_load();
     aa_rx_sg_init(cx.scenegraph);
 
     if( workspace ) {
-        cx.end_effector = aa_rx_sg_frame_id(cx.scenegraph,opt_end_effector);
-        SNS_REQUIRE( cx.end_effector > 0, "Invalid end-effector frame: `%s'", opt_end_effector );
+      cx.end_effector = aa_rx_sg_frame_id(cx.scenegraph,opt_end_effector);
+      SNS_REQUIRE( cx.end_effector > 0, "Invalid end-effector frame: `%s'", opt_end_effector );
 
 	// Same with this
 	//create sub scene graph w command line for tip, add to cx struct
-	cx.sub_scenegraph = aa_rx_sg_chain_create(cx.scenegraph, AA_RX_FRAME_ROOT, cx.end_effector);
+	cx.ssg = aa_rx_sg_chain_create(cx.scenegraph, AA_RX_FRAME_ROOT, cx.end_effector);
     }
-    
+
+    SNS_LOG(LOG_DEBUG,"did some end effector stuff\n");
+
     /* Reference (output) */
     sns_motor_ref_init(cx.scenegraph,
                        cx.ref_chan, &cx.ref_set,
@@ -231,12 +238,15 @@ main(int argc, char **argv)
     sns_motor_state_init(cx.scenegraph,
                          cx.state_chan, &cx.state_set,
                          n_handlers - 1, cx.handlers + 1 );
-    //sets cx.state_act so we can get TF_abs later
-    cx.state_act = sns_motor_state_get(cx.state_set);
 
     /* Start Event Loop */
     cx.period = aa_tm_sec2timespec( 1 / opt_frequency );
     sns_start();
+
+    for( size_t i = 0; i < cx.ref_set->n_q; i++ ) {
+        cx.ref_set->u[i] = 0;
+        cx.ref_set->meta[i].mode = SNS_MOTOR_MODE_VEL;
+    }
     enum ach_status r =
         sns_evhandle( cx.handlers, n_handlers,
                       &cx.period, NULL, NULL,
@@ -264,9 +274,11 @@ enum ach_status handle_js( void *cx_, void *msg_, size_t msg_size )
     if( sns_msg_joystick_check_size(msg,msg_size) ) {
         /* Invalid Message */
         SNS_LOG(LOG_ERR, "Mismatched message size on joystick channel\n");
-    } else {
+    } else if ( cx->map ) { 	/* Evals to true if doing workspace */
         /* Process Message */
-        teleop(cx,msg);
+        teleop_wksp(cx,msg);
+    } else {			/* For jointspace control */
+	teleop(cx,msg);
     }
 
     return ACH_OK;
@@ -274,66 +286,19 @@ enum ach_status handle_js( void *cx_, void *msg_, size_t msg_size )
 
 void teleop( struct cx *cx, struct sns_msg_joystick *msg )
 {
-    puts("Running teleop");
-    //QUESTION: this is just setting all the motors to be taking in velocities,v=0 correct?
-    for( size_t i = 0; i < cx->ref_set->n_q; i++ ) {
-        cx->ref_set->u[i] = 0;
-        cx->ref_set->meta[i].mode = SNS_MOTOR_MODE_VEL;
-    }
+  SNS_LOG(LOG_DEBUG,"Running teleop");
 
 
-    
-    /* TODO: Workspace control */
 
 
-    if( cx->map ) { //Evaluates to true if doing workspace, otherwise false
-	puts("Running workspace stuff");
-	// TODO: take in rotational velocities
-	//creates array of workspace vel. trans xyz then rotational xyz
-	double workspace_vel[6];
-	workspace_vel[AA_TF_DX_V] =  msg->axis[0];
-	workspace_vel[AA_TF_DX_V + 1] = msg->axis[1];
-	workspace_vel[AA_TF_DX_V + 2] = msg->axis[3];
-	workspace_vel[AA_TF_DX_V] = 0;
-	workspace_vel[AA_TF_DX_V + 1] = 0;
-	workspace_vel[AA_TF_DX_V + 2] = 0;
+    //Iterates through all the joint_ctrls in cx
+    for( struct joint_ctrl *J = cx->joint_ctrl; J; J = J->next ) {
+	//does current bitmap of buttons (msg->buttons)
+	if( msg->buttons & (uint64_t)(1 << J->button ) ) {
+	    sns_motor_map_in( J->map,
+			      (size_t)msg->header.n, msg->axis,
+			      cx->ref_set->u );
 
-	puts("Workspace vels set");
-
-	//New workspace work using ntd's new fxn
-	struct aa_rx_ct_wk_opts *wk_opts = aa_rx_wk_opts_create();
-	size_t n_tf = aa_rx_sg_frame_count(cx->scenegraph);     // Get num transforms for ENTIRE scenegraph
-	puts("Workspace options created, num transforms found");
-	
-	size_t ld_TF = 7;
-	size_t n_x = 6; //Look to ssg fxn to get size of jacobian (ok to leave as 6 for now
-	size_t n_q = aa_rx_sg_config_count(cx->scenegraph);     // Size of config vector q
-	double dq[7]; //Look to ssg fxns aa_rx_sg_sub_config_count
-	//ASK: Do we need to allocate storage for TF_abs with aa_rx_sg_alloc_tf?
-	//struct aa_ct_state * state_test = sns_motor_state_get(cx->state_set);
-	double *TF_abs = cx->state_act->TF_abs;
-	puts("All other inputs calculated");
-	
-	int a = aa_rx_wk_dx2dq(cx->sub_scenegraph, wk_opts, n_tf, TF_abs, ld_TF, n_x, workspace_vel, n_q, dq);
-	puts("dx2dq done");
-	
-	//add workspace control passed to sns
-	size_t n_sub = 7; // TODO: get num from subscenegraph with config_count or somesuch
-	sns_motor_map_in( cx->map, n_sub, dq, cx->ref_set->u );
-    }
-
-
-    /* End Simon trying to do workspace control */
-    if( !cx->map ){
-	//Iterates through all the joint_ctrls in cx     
-	for( struct joint_ctrl *J = cx->joint_ctrl; J; J = J->next ) {
-	    //does current bitmap of buttons (msg->buttons)
-	    if( msg->buttons & (uint64_t)(1 << J->button ) ) {
-		sns_motor_map_in( J->map,
-				  (size_t)msg->header.n, msg->axis,
-				  cx->ref_set->u );
-
-	    }
 	}
     }
 
@@ -342,6 +307,64 @@ void teleop( struct cx *cx, struct sns_msg_joystick *msg )
     //sends out values in ref set
     sns_motor_ref_put( cx->ref_set, &now, 1e9 );
 }
+
+void teleop_wksp( struct cx *cx, struct sns_msg_joystick *msg )
+{
+  SNS_LOG(LOG_DEBUG,"Running workspace teleop");
+
+    cx->state_act = sns_motor_state_get(cx->state_set);
+    // Transforms, num transforms not set
+    // joint angles given in radians
+    for (size_t i = 0; i < cx->state_act->n_q; i++) {
+      SNS_LOG(LOG_DEBUG, "Joint %lu angle: %f\n", i ,cx->state_act->q[i]);
+    }
+
+
+    double workspace_vel[6]; //TODO: make this not a hard coded thing to work with the gamepad
+    workspace_vel[AA_TF_DX_V] =  msg->axis[0];
+    workspace_vel[AA_TF_DX_V + 1] = msg->axis[1];
+    workspace_vel[AA_TF_DX_V + 2] = msg->axis[3];
+    workspace_vel[AA_TF_DX_W] = 0;
+    workspace_vel[AA_TF_DX_W + 1] = 0;
+    workspace_vel[AA_TF_DX_W + 2] = 0;
+
+
+    for(size_t i = 0; i < 6; i++){
+      SNS_LOG(LOG_DEBUG, "Workspace velocity %lu: %f \n", i, workspace_vel[i]);
+    }
+
+    //New workspace work using ntd's new fxn
+    struct aa_rx_wk_opts *wk_opts = aa_rx_wk_opts_create();
+    size_t n_tf = aa_rx_sg_frame_count(cx->scenegraph);     // Get num transforms for ENTIRE scenegraph
+
+    size_t n_x = 6; //Look to ssg fxn to get size of jacobian (ok to leave as 6 for now
+    size_t n_q = aa_rx_sg_config_count(cx->scenegraph);     // Size of config vector q, called m in baxter-wksp.c
+    size_t n_c = aa_rx_sg_sub_config_count(cx->ssg); // size of config vector for ssg
+    double q_subset[n_c];
+
+    //fills out q_subset
+    aa_rx_sg_config_get( cx->scenegraph, n_q, n_c,
+			 aa_rx_sg_sub_configs(cx->ssg), cx->state_act->q, q_subset );
+
+    size_t ld_TF = 7; // TODO: have leading dimensional not be hardcoded
+    double TF_rel[n_tf * 7];
+    double TF_abs[n_tf * 7];
+    aa_rx_sg_tf(cx->scenegraph, n_q, cx->state_act->q, n_tf, TF_rel, ld_TF, TF_abs, ld_TF);
+
+    aa_rx_wk_dx2dq(cx->ssg, wk_opts, n_tf, TF_abs, ld_TF,
+			   n_x, workspace_vel, n_c, cx->ref_set->u);
+
+    for(size_t i = 0; i < n_c; i++){
+      SNS_LOG(LOG_DEBUG,"Joint velocity %lu: %f \n",  i, cx->ref_set->u[i]);
+    }
+
+    struct timespec now;
+    clock_gettime( ACH_DEFAULT_CLOCK, &now );
+    //sends out values in ref set
+    sns_motor_ref_put( cx->ref_set, &now, 1e9 );
+}
+
+
 
 static void
 halt( struct cx *cx )
