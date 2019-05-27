@@ -243,6 +243,7 @@ sns_motor_ref_put( struct sns_motor_ref_set *ref_set,
         sns_msg_set_time( &msg->header, now, dur_ns );
 
         /* send message */
+	if( SNS_LOG_PRIORITY(LOG_INFO) ) sns_msg_motor_ref_dump( stdout, msg );
         sns_msg_motor_ref_put(&mc->channel, msg);
 
     END_STEP:
@@ -450,11 +451,11 @@ ref_handler( void *cx_, void *msg_, size_t frame_size )
         SNS_LOG(LOG_ERR, "Mismatched message size on channel `%s'\n",
                 e->channel->name);
     } else {
-        sns_motor_ref_fill(msg, e);
+      if( SNS_LOG_PRIORITY(LOG_INFO) ) sns_msg_motor_ref_dump( stdout, msg );
+      sns_motor_ref_fill(msg, e);
     }
     return ACH_OK;
 }
-
 
 
 static enum ach_status

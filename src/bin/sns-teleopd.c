@@ -71,32 +71,34 @@ struct joint_ctrl {
 
 struct cx {
 
-    struct aa_rx_sg_sub *ssg; // subscenegraph for workspace control
-    struct sns_motor_map *map; //ssg motor map
+  struct aa_rx_sg_sub *ssg; // subscenegraph for workspace control
+  bool workspace;
 
-    struct aa_rx_sg *scenegraph;
+  struct timespec switch_time;
 
-    struct sns_motor_channel *ref_chan;
-    struct sns_motor_channel *state_chan; // linked list of motor channels
+  struct aa_rx_sg *scenegraph;
 
-    struct sns_motor_ref_set *ref_set;
-    struct sns_motor_state_set *state_set;
+  struct sns_motor_channel *ref_chan;
+  struct sns_motor_channel *state_chan; // linked list of motor channels
+
+  struct sns_motor_ref_set *ref_set;
+  struct sns_motor_state_set *state_set;
 
 
-    aa_rx_frame_id end_effector;
+  aa_rx_frame_id end_effector;
 
-    struct ach_channel js_channel;
+  struct ach_channel js_channel;
 
-    struct sns_evhandler *handlers;
+  struct sns_evhandler *handlers;
 
-    struct timespec period;
+  struct timespec period;
 
-    struct aa_ct_state *state_act;
+  struct aa_ct_state *state_act;
 
-    struct joint_ctrl *joint_ctrl;
+  struct joint_ctrl *joint_ctrl;
 
-    double *q_ref;
-    double *dq_ref;
+  double *q_ref;
+  double *dq_ref;
 };
 
 
@@ -112,7 +114,8 @@ teleop_wksp( struct cx *cx, struct sns_msg_joystick *msg );
 static void
 halt( struct cx *cx );
 
-void send_ref( struct cx *cx );
+static void
+printxyz(struct cx *cx);
 
 int
 main(int argc, char **argv)
@@ -125,73 +128,76 @@ main(int argc, char **argv)
     const char *opt_end_effector = NULL;
     bool workspace = false;
     {
-        int c = 0;
-        while( (c = getopt( argc, argv, "u:y:j:e:Q:m:w:h?" SNS_OPTSTRING)) != -1 ) {
-            switch(c) {
-                SNS_OPTCASES_VERSION("sns-teleopd",
-                                     "Copyright (c) 2015-2017, Rice University\n",
-                                     "Neil T. Dantam")
-            case 'u':
-                sns_motor_channel_push( optarg, &cx.ref_chan );
-                break;
-            case 'y':
-                sns_motor_channel_push( optarg, &cx.state_chan );
-                break;
-            case 'j':
-                opt_chan_joystick = optarg;
-                break;
-            case 'e':
-                opt_end_effector = optarg;
-                break;
-            case 'Q':
-            {
-		// Creates a linked list of joint ctrls?
-                struct joint_ctrl *J = AA_NEW0(struct joint_ctrl);
-                J->button = atoi(optarg);
-                J->next = cx.joint_ctrl;
-                cx.joint_ctrl = J;
-                break;
-            }
-            case 'm':
-                if( cx.joint_ctrl ) {
-                    cx.joint_ctrl->map = sns_motor_map_parse(optarg);
-                } else {
-                    SNS_DIE("Need joint-space button parameter before joint map\n");
-                }
-                break;
-	    case 'w': // CLA for workspace control-- should work if put in entire motor map
-		      // Should work if you put the entire motor map in here
-		workspace = true;
-		cx.map = sns_motor_map_parse(optarg);
-		break;
-            case '?':   /* help     */
-            case 'h':
-                puts( "Usage: sns-teleopd -j <joystick-channel> -u <ref-channel> -y <state-channel>\n"
-                      "Teleop a robot.\n"
-                      "\n"
-                      "Options:\n"
-                      "  -y <channel>,             state channel, input\n"
-                      "  -j <channel>,             joystick channel, input\n"
-                      "  -u <channel>,             reference channel, output\n"
-                      "  -e <frame>,               end-effector frame\n"
-                      "  -m <map>,                 motor map\n"
-                      "  -Q <button>,              joint-space control button\n"
-                      "  -V,                       Print program version\n"
-		      "  -w <map>,                 workspace control motor map\n"
-                      "  -?,                       display this help and exit\n"
-                      "\n"
-                      "Examples:\n"
-                      "  sns-teleopd -j joystick -y state -u ref\n"
-                      "\n"
-                      "  sns-teleopd -j joystick -y state -u ref -q 1 -m s0,s1,e0 -q 2 -m w0,w1,w2\n"
-                      "\n"
-                      "Report bugs to " PACKAGE_BUGREPORT );
-                      exit(EXIT_SUCCESS);
-                default:
-                      SNS_DIE("Unknown Option: `%c'\n", c);
-                      break;
-            }
-        }
+      int c = 0;
+      while( (c = getopt( argc, argv, "u:y:j:e:Q:m:wh?" SNS_OPTSTRING)) != -1 ) {
+	switch(c) {
+	  SNS_OPTCASES_VERSION("sns-teleopd",
+			       "Copyright (c) 2015-2017, Rice University\n",
+			       "Neil T. Dantam")
+	case 'u':
+	  sns_motor_channel_push( optarg, &cx.ref_chan );
+	  break;
+	case 'y':
+	  sns_motor_channel_push( optarg, &cx.state_chan );
+	  break;
+	case 'j':
+	  opt_chan_joystick = optarg;
+	  break;
+	case 'e':
+	  opt_end_effector = optarg;
+	  break;
+	case 'Q':
+	  {
+	    // Creates a linked list of joint ctrls?
+	    struct joint_ctrl *J = AA_NEW0(struct joint_ctrl);
+	    J->button = atoi(optarg);
+	    J->next = cx.joint_ctrl;
+	    cx.joint_ctrl = J;
+	    break;
+	  }
+	case 'm':
+	  if( cx.joint_ctrl ) {
+	    cx.joint_ctrl->map = sns_motor_map_parse(optarg);
+	  } else {
+	    SNS_DIE("Need joint-space button parameter before joint map\n");
+	  }
+	  break;
+	case 'w': // CLA for workspace control-- should work if put in entire motor map
+	  // Should work if you put the entire motor map in here
+	  if(opt_end_effector){
+	    workspace = true;
+	  } else{
+	    SNS_DIE("Need end effector frame before declaring workspace control\n");
+	  }
+	  break;
+	case '?':   /* help     */
+	case 'h':
+	  puts( "Usage: sns-teleopd -j <joystick-channel> -u <ref-channel> -y <state-channel>\n"
+		"Teleop a robot.\n"
+		"\n"
+		"Options:\n"
+		"  -y <channel>,             state channel, input\n"
+		"  -j <channel>,             joystick channel, input\n"
+		"  -u <channel>,             reference channel, output\n"
+		"  -e <frame>,               end-effector frame\n"
+		"  -m <map>,                 motor map\n"
+		"  -Q <button>,              joint-space control button\n"
+		"  -V,                       Print program version\n"
+		"  -w <map>,                 workspace control motor map\n"
+		"  -?,                       display this help and exit\n"
+		"\n"
+		"Examples:\n"
+		"  sns-teleopd -j joystick -y state -u ref\n"
+		"\n"
+		"  sns-teleopd -j joystick -y state -u ref -q 1 -m s0,s1,e0 -q 2 -m w0,w1,w2\n"
+		"\n"
+		"Report bugs to " PACKAGE_BUGREPORT );
+	  exit(EXIT_SUCCESS);
+	default:
+	  SNS_DIE("Unknown Option: `%c'\n", c);
+	  break;
+	}
+      }
     }
     sns_init(); // makes sure ach, sns exist, sets up data structures
     SNS_REQUIRE(cx.ref_chan, "Need reference channel"); // ref is where you want to go
@@ -203,7 +209,8 @@ main(int argc, char **argv)
     cx.scenegraph = sns_scene_load();
     aa_rx_sg_init(cx.scenegraph);
 
-    if( workspace ) {
+    cx.workspace = workspace;
+    if( opt_end_effector ) {
       cx.end_effector = aa_rx_sg_frame_id(cx.scenegraph,opt_end_effector);
       SNS_REQUIRE( cx.end_effector > 0, "Invalid end-effector frame: `%s'", opt_end_effector );
 
@@ -211,8 +218,8 @@ main(int argc, char **argv)
 	//create sub scene graph w command line for tip, add to cx struct
 	cx.ssg = aa_rx_sg_chain_create(cx.scenegraph, AA_RX_FRAME_ROOT, cx.end_effector);
     }
-
-    SNS_LOG(LOG_DEBUG,"did some end effector stuff\n");
+    struct timespec sw_time = {0,0};
+    cx.switch_time = sw_time;
 
     /* Reference (output) */
     sns_motor_ref_init(cx.scenegraph,
@@ -267,14 +274,32 @@ main(int argc, char **argv)
 
 enum ach_status handle_js( void *cx_, void *msg_, size_t msg_size )
 {
-    puts("Running handle_js");
+  SNS_LOG(LOG_DEBUG,"Running handle_js\n");
     struct cx *cx = (struct cx*)cx_;
     struct sns_msg_joystick *msg = (struct sns_msg_joystick *)msg_;
+
+    if (SNS_LOG_PRIORITY(LOG_INFO)){
+      printxyz(cx);
+    }
+
+    /* switch between joint and workspace control */
+    if(msg->buttons % 2 && cx->end_effector && cx->joint_ctrl){ //TODO: allow people to define what button causes the switch
+      struct timespec sw_time = cx->switch_time;
+      struct timespec now;
+      clock_gettime(ACH_DEFAULT_CLOCK,&now);
+      if(now.tv_sec > sw_time.tv_sec ||
+	 (now.tv_sec == sw_time.tv_sec && now.tv_nsec > sw_time.tv_nsec)){
+	SNS_LOG(LOG_INFO,"Switching control type.\n");
+	cx->workspace = !cx->workspace;
+	clock_gettime( ACH_DEFAULT_CLOCK,&cx->switch_time);
+	cx->switch_time.tv_sec +=1;
+      }
+    }
 
     if( sns_msg_joystick_check_size(msg,msg_size) ) {
         /* Invalid Message */
         SNS_LOG(LOG_ERR, "Mismatched message size on joystick channel\n");
-    } else if ( cx->map ) { 	/* Evals to true if doing workspace */
+    } else if ( cx->workspace ) { /* Evals to true if doing workspace */
         /* Process Message */
         teleop_wksp(cx,msg);
     } else {			/* For jointspace control */
@@ -287,10 +312,6 @@ enum ach_status handle_js( void *cx_, void *msg_, size_t msg_size )
 void teleop( struct cx *cx, struct sns_msg_joystick *msg )
 {
   SNS_LOG(LOG_DEBUG,"Running teleop");
-
-
-
-
     //Iterates through all the joint_ctrls in cx
     for( struct joint_ctrl *J = cx->joint_ctrl; J; J = J->next ) {
 	//does current bitmap of buttons (msg->buttons)
@@ -321,9 +342,9 @@ void teleop_wksp( struct cx *cx, struct sns_msg_joystick *msg )
 
 
     double workspace_vel[6]; //TODO: make this not a hard coded thing to work with the gamepad
-    workspace_vel[AA_TF_DX_V] =  msg->axis[0];
-    workspace_vel[AA_TF_DX_V + 1] = msg->axis[1];
-    workspace_vel[AA_TF_DX_V + 2] = msg->axis[3];
+    workspace_vel[AA_TF_DX_V] =  -msg->axis[0];
+    workspace_vel[AA_TF_DX_V + 1] = -msg->axis[1];
+    workspace_vel[AA_TF_DX_V + 2] = -msg->axis[3];
     workspace_vel[AA_TF_DX_W] = 0;
     workspace_vel[AA_TF_DX_W + 1] = 0;
     workspace_vel[AA_TF_DX_W + 2] = 0;
@@ -351,6 +372,9 @@ void teleop_wksp( struct cx *cx, struct sns_msg_joystick *msg )
     double TF_abs[n_tf * 7];
     aa_rx_sg_tf(cx->scenegraph, n_q, cx->state_act->q, n_tf, TF_rel, ld_TF, TF_abs, ld_TF);
 
+    /* SNS_LOG(LOG_INFO,"X:%f Y:%F Z:%f\n", TF_abs[(n_tf - 1) * ld_TF - 3], */
+     /* 	    TF_abs[(n_tf - 1) * ld_TF - 2], TF_abs[(n_tf - 1) * ld_TF - 1]); */
+
     aa_rx_wk_dx2dq(cx->ssg, wk_opts, n_tf, TF_abs, ld_TF,
 			   n_x, workspace_vel, n_c, cx->ref_set->u);
 
@@ -377,4 +401,18 @@ halt( struct cx *cx )
     struct timespec now;
     clock_gettime( ACH_DEFAULT_CLOCK, &now );
     sns_motor_ref_put( cx->ref_set, &now, 1e9 );
+}
+
+static void printxyz(struct cx *cx){
+  cx->state_act = sns_motor_state_get(cx->state_set);
+  size_t n_q = aa_rx_sg_config_count(cx->scenegraph);
+  size_t n_tf = aa_rx_sg_frame_count(cx->scenegraph);
+  size_t ld_TF = 7;
+  double TF_rel[n_tf * 7];
+  double TF_abs[n_tf * 7];
+  SNS_LOG(LOG_DEBUG, "made it to before sg tf\n");
+  aa_rx_sg_tf(cx->scenegraph, n_q, cx->state_act->q, n_tf, TF_rel, ld_TF, TF_abs, ld_TF);
+
+  SNS_LOG(LOG_INFO,"X:%f Y:%F Z:%f\n", TF_abs[(n_tf - 1) * ld_TF - 3],
+	  TF_abs[(n_tf - 1) * ld_TF - 2], TF_abs[(n_tf - 1) * ld_TF - 1]);
 }
