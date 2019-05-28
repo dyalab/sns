@@ -43,6 +43,7 @@
  */
 
 #include "sns.h"
+#include <amino/rx/scenegraph.h>
 
 /**
  * Forward declaration
