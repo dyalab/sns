@@ -34,7 +34,6 @@
 
 
 #include "config.h"
-#include <stdio.h>
 
 #include "sns.h"
 #include "sns/joystick/gamepad.h"
@@ -65,8 +64,6 @@ struct workspace_ctrl {
   struct aa_rx_sg_sub *ssg;
   aa_rx_frame_id end_effector;
 
-  struct aa_ct_state *state_act;
-
   struct aa_rx_wk_opts *wk_opts;
 
   size_t n_tf;
@@ -76,6 +73,7 @@ struct workspace_ctrl {
 
 struct cx {
   struct aa_rx_sg *scenegraph;
+  struct aa_ct_state *state_act;
 
   bool workspace;
   struct timespec switch_time;
@@ -323,10 +321,10 @@ void teleop( struct cx *cx, struct sns_msg_joystick *msg )
 void teleop_wksp( struct cx *cx, struct sns_msg_joystick *msg )
 {
 
-  cx->workspace_ctrl->state_act = sns_motor_state_get(cx->state_set);
+  cx->state_act = sns_motor_state_get(cx->state_set);
 
   struct aa_rx_wk_opts *wk_opts = cx->workspace_ctrl->wk_opts;
-  struct aa_ct_state *state_act = cx->workspace_ctrl->state_act;
+  struct aa_ct_state *state_act = cx->state_act;
 
   size_t n_tf = cx->workspace_ctrl->n_tf;
   size_t n_c  = cx->workspace_ctrl->n_c;
