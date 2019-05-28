@@ -39,16 +39,23 @@
 
 (progn
   (in-package :sns)
+
   (cc-flags "--std=gnu99")
-  ;; TODO: do this better
   (cc-flags #.(concatenate 'string
                            "-I"
-                           ;;(directory-namestring (user-homedir-pathname))
                            "/usr/local/include/amino-1.0"))
+  (cc-flags "-lach -lsns")
+
+  (include "stdlib.h")
   (include "syslog.h")
   (include "sns.h")
-  (constant (+hostname-len+ "SNS_HOSTNAME_LEN"))
-  (constant (+ident-len+ "SNS_IDENT_LEN"))
+
+  (ctype ach-status-t "ach_status_t")
+  (ctype uint32-t "uint32_t")
+  (ctype uint64-t "uint64_t")
+  (ctype size-t "size_t")
+  (ctype ssize-t "ssize_t")
+
   (cstruct msg-header "struct sns_msg_header"
            (sec "sec" :type :int64)
            (dur-nsec "dur_nsec" :type :int64)
@@ -58,4 +65,59 @@
            (from-host "from_host" :type :char :count "SNS_HOSTNAME_LEN")
            (ident "ident" :type :char :count "SNS_IDENT_LEN")
            )
-  )
+
+  (cstruct sns-msg-log "struct sns_msg_log"
+	   (header "header" :type (:struct msg-header))
+	   (priority "priority" :type :int)
+	   (text "text" :type :pointer))
+
+  (cstruct sns-msg-vector "struct sns_msg_vector"
+	   (header "header" :type (:struct msg-header))
+	   (x "x" :type :pointer))
+
+  (cstruct sns-msg-matrix "struct sns_msg_matrix"
+	   (header "header" :type (:struct msg-header))
+	   (rows "rows" :type uint64-t)
+	   (cols "cols" :type uint64-t)
+	   (x "x" :type :pointer))
+
+  (cstruct sns-msg-tf "struct sns_msg_tf"
+	   (header "header" :type (:struct msg-header))
+	   (tf "tf" :type :pointer))
+
+  (cstruct sns-msg-wt-tf "struct sns_msg_wt_tf"
+	   (header "header" :type (:struct msg-header))
+	   (wt-tf "wt_tf" :type :pointer))
+
+  (cstruct sns-msg-tf-dx "struct sns_msg_tf_dx"
+	   (header "header" :type (:struct msg-header))
+	   (tf-dx "tf_dx" :type :pointer))
+
+  (cenum motor-mode
+	 ((:halt "SNS_MOTOR_MODE_HALT"))
+	 ((:pos "SNS_MOTOR_MODE_POS"))
+	 ((:vel "SNS_MOTOR_MODE_VEL"))
+	 ((:torq "SNS_MOTOR_MODE_TORQ"))
+	 ((:cur "SNS_MOTOR_MODE_CUR"))
+	 ((:reset "SNS_MOTOR_MODE_RESET"))
+	 ((:pos-offset "SNS_MOTOR_MODE_POS_OFFSET")))
+
+  (cstruct sns-msg-motor-ref "struct sns_msg_motor_ref"
+	   (header "header" :type (:struct msg-header))
+	   (mode "mode" :type motor-mode)
+	   (u "u" :type :pointer))
+
+  (cstruct sns-msg-tag-motor-ref "struct sns_msg_tag_motor_ref"
+	  (header "header" :type (:struct msg-header))
+	  (mode "mode" :type motor-mode)
+	  (u "u" :type :pointer))
+
+  (cstruct sns-msg-motor-state "struct sns_msg_motor_state"
+	   (header "header" :type (:struct msg-header))
+	   (mode "mode" :type motor-mode)
+	   (X "X" :type :pointer))
+
+  (cstruct sns-msg-joystick "struct sns_msg_joystick"
+	   (header "header" :type (:struct msg-header))
+	   (buttons "buttons" :type uint64-t)
+	   (axis "axis" :type :pointer)))

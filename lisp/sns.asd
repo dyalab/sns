@@ -46,4 +46,7 @@
   :depends-on ("cffi" "ach" "amino")
   :components ((:file "package")
                (cffi-grovel:grovel-file "grovel" :depends-on ("package"))
+	       (:file "lib" :depends-on ("grovel"))
+	       (cffi-grovel:wrapper-file "wrappers" :depends-on ("lib"))
+
                (:file "sns" :depends-on ("package" "grovel"))))

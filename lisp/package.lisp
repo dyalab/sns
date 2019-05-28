@@ -38,7 +38,7 @@
 ;;;;   POSSIBILITY OF SUCH DAMAGE.
 
 (defpackage :sns
-  (:use :cl :cffi :alexandria :amino)
+  (:use :cl :cffi :alexandria :amino :ach)
   (:export :msg-get :msg-put :msg-decode :msg-aref
            ;; message types
            :msg-tf
