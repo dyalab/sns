@@ -55,171 +55,22 @@
 
   (include "stdlib.h")
   (include "sns.h")
-
-  (DEFWRAPPER ("sns_msg_log_size_n" SNS-MSG-LOG-SIZE-N) UINT32-T (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_log_size" SNS-MSG-LOG-SIZE) UINT32-T (MSG :POINTER))
-  (DEFWRAPPER ("sns_msg_log_check_size" SNS-MSG-LOG-CHECK-SIZE) SSIZE-T
-    (MSG :POINTER) (MEM_SIZE SIZE-T))
-  (DEFWRAPPER ("sns_msg_log_init" SNS-MSG-LOG-INIT) :VOID (MSG :POINTER)
-	      (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_log_heap_alloc" SNS-MSG-LOG-HEAP-ALLOC) :POINTER
-    (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_log_region_alloc" SNS-MSG-LOG-REGION-ALLOC) :POINTER
-    (REG :POINTER) (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_log_local_alloc" SNS-MSG-LOG-LOCAL-ALLOC) :POINTER
-    (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_log_put" SNS-MSG-LOG-PUT) ACH::ACH-STATUS-T
-    (CHAN :POINTER) (MSG :POINTER))
-  (DEFWRAPPER ("sns_msg_log_local_get" SNS-MSG-LOG-LOCAL-GET) ACH::ACH-STATUS-T
-    (CHAN :POINTER) (PMSG :POINTER) (FRAME-SIZE :POINTER) (TIMESPEC :POINTER)
-    (OPTIONS :INT))
-  (DEFWRAPPER ("sns_msg_vector_size_n" SNS-MSG-VECTOR-SIZE-N) UINT32-T
-    (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_vector_size" SNS-MSG-VECTOR-SIZE) UINT32-T (MSG :POINTER))
-  (DEFWRAPPER ("sns_msg_vector_check_size" SNS-MSG-VECTOR-CHECK-SIZE) SSIZE-T
-    (MSG :POINTER) (MEM_SIZE SIZE-T))
-  (DEFWRAPPER ("sns_msg_vector_init" SNS-MSG-VECTOR-INIT) :VOID (MSG :POINTER)
-	      (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_vector_heap_alloc" SNS-MSG-VECTOR-HEAP-ALLOC) :POINTER
-    (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_vector_region_alloc" SNS-MSG-VECTOR-REGION-ALLOC)
-      :POINTER (REG :POINTER) (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_vector_local_alloc" SNS-MSG-VECTOR-LOCAL-ALLOC) :POINTER
-    (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_vector_put" SNS-MSG-VECTOR-PUT) ACH::ACH-STATUS-T
-    (CHAN :POINTER) (MSG :POINTER))
-  (DEFWRAPPER ("sns_msg_vector_local_get" SNS-MSG-VECTOR-LOCAL-GET)
-      ACH::ACH-STATUS-T (CHAN :POINTER) (PMSG :POINTER) (FRAME-SIZE :POINTER)
-      (TIMESPEC :POINTER) (OPTIONS :INT))
-  (DEFWRAPPER ("sns_msg_tf_size_n" SNS-MSG-TF-SIZE-N) UINT32-T (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_tf_size" SNS-MSG-TF-SIZE) UINT32-T (MSG :POINTER))
-  (DEFWRAPPER ("sns_msg_tf_check_size" SNS-MSG-TF-CHECK-SIZE) SSIZE-T
-    (MSG :POINTER) (MEM_SIZE SIZE-T))
-  (DEFWRAPPER ("sns_msg_tf_init" SNS-MSG-TF-INIT) :VOID (MSG :POINTER)
-	      (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_tf_heap_alloc" SNS-MSG-TF-HEAP-ALLOC) :POINTER
-    (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_tf_region_alloc" SNS-MSG-TF-REGION-ALLOC) :POINTER
-    (REG :POINTER) (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_tf_local_alloc" SNS-MSG-TF-LOCAL-ALLOC) :POINTER
-    (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_tf_put" SNS-MSG-TF-PUT) ACH::ACH-STATUS-T (CHAN :POINTER)
-	      (MSG :POINTER))
-  (DEFWRAPPER ("sns_msg_tf_local_get" SNS-MSG-TF-LOCAL-GET) ACH::ACH-STATUS-T
-    (CHAN :POINTER) (PMSG :POINTER) (FRAME-SIZE :POINTER) (TIMESPEC :POINTER)
-    (OPTIONS :INT))
-  (DEFWRAPPER ("sns_msg_wt_tf_size_n" SNS-MSG-WT-TF-SIZE-N) UINT32-T (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_wt_tf_size" SNS-MSG-WT-TF-SIZE) UINT32-T (MSG :POINTER))
-  (DEFWRAPPER ("sns_msg_wt_tf_check_size" SNS-MSG-WT-TF-CHECK-SIZE) SSIZE-T
-    (MSG :POINTER) (MEM_SIZE SIZE-T))
-  (DEFWRAPPER ("sns_msg_wt_tf_init" SNS-MSG-WT-TF-INIT) :VOID (MSG :POINTER)
-	      (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_wt_tf_heap_alloc" SNS-MSG-WT-TF-HEAP-ALLOC) :POINTER
-    (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_wt_tf_region_alloc" SNS-MSG-WT-TF-REGION-ALLOC) :POINTER
-    (REG :POINTER) (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_wt_tf_local_alloc" SNS-MSG-WT-TF-LOCAL-ALLOC) :POINTER
-    (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_wt_tf_put" SNS-MSG-WT-TF-PUT) ACH::ACH-STATUS-T
-    (CHAN :POINTER) (MSG :POINTER))
-  (DEFWRAPPER ("sns_msg_wt_tf_local_get" SNS-MSG-WT-TF-LOCAL-GET)
-      ACH::ACH-STATUS-T (CHAN :POINTER) (PMSG :POINTER) (FRAME-SIZE :POINTER)
-      (TIMESPEC :POINTER) (OPTIONS :INT))
-  (DEFWRAPPER ("sns_msg_tf_dx_size_n" SNS-MSG-TF-DX-SIZE-N) UINT32-T (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_tf_dx_size" SNS-MSG-TF-DX-SIZE) UINT32-T (MSG :POINTER))
-  (DEFWRAPPER ("sns_msg_tf_dx_check_size" SNS-MSG-TF-DX-CHECK-SIZE) SSIZE-T
-    (MSG :POINTER) (MEM_SIZE SIZE-T))
-  (DEFWRAPPER ("sns_msg_tf_dx_init" SNS-MSG-TF-DX-INIT) :VOID (MSG :POINTER)
-	      (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_tf_dx_heap_alloc" SNS-MSG-TF-DX-HEAP-ALLOC) :POINTER
-    (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_tf_dx_region_alloc" SNS-MSG-TF-DX-REGION-ALLOC) :POINTER
-    (REG :POINTER) (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_tf_dx_local_alloc" SNS-MSG-TF-DX-LOCAL-ALLOC) :POINTER
-    (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_tf_dx_put" SNS-MSG-TF-DX-PUT) ACH::ACH-STATUS-T
-    (CHAN :POINTER) (MSG :POINTER))
-  (DEFWRAPPER ("sns_msg_tf_dx_local_get" SNS-MSG-TF-DX-LOCAL-GET)
-      ACH::ACH-STATUS-T (CHAN :POINTER) (PMSG :POINTER) (FRAME-SIZE :POINTER)
-      (TIMESPEC :POINTER) (OPTIONS :INT))
-  (DEFWRAPPER ("sns_msg_motor_ref_size_n" SNS-MSG-MOTOR-REF-SIZE-N) UINT32-T
-    (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_motor_ref_size" SNS-MSG-MOTOR-REF-SIZE) UINT32-T
-    (MSG :POINTER))
-  (DEFWRAPPER ("sns_msg_motor_ref_check_size" SNS-MSG-MOTOR-REF-CHECK-SIZE)
-      SSIZE-T (MSG :POINTER) (MEM_SIZE SIZE-T))
-  (DEFWRAPPER ("sns_msg_motor_ref_init" SNS-MSG-MOTOR-REF-INIT) :VOID
-    (MSG :POINTER) (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_motor_ref_heap_alloc" SNS-MSG-MOTOR-REF-HEAP-ALLOC)
-      :POINTER (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_motor_ref_region_alloc" SNS-MSG-MOTOR-REF-REGION-ALLOC)
-      :POINTER (REG :POINTER) (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_motor_ref_local_alloc" SNS-MSG-MOTOR-REF-LOCAL-ALLOC)
-      :POINTER (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_motor_ref_put" SNS-MSG-MOTOR-REF-PUT) ACH::ACH-STATUS-T
-    (CHAN :POINTER) (MSG :POINTER))
-  (DEFWRAPPER ("sns_msg_motor_ref_local_get" SNS-MSG-MOTOR-REF-LOCAL-GET)
-      ACH::ACH-STATUS-T (CHAN :POINTER) (PMSG :POINTER) (FRAME-SIZE :POINTER)
-      (TIMESPEC :POINTER) (OPTIONS :INT))
-  (DEFWRAPPER ("sns_msg_tag_motor_ref_size_n" SNS-MSG-TAG-MOTOR-REF-SIZE-N)
-      UINT32-T (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_tag_motor_ref_size" SNS-MSG-TAG-MOTOR-REF-SIZE) UINT32-T
-    (MSG :POINTER))
-  (DEFWRAPPER
-      ("sns_msg_tag_motor_ref_check_size" SNS-MSG-TAG-MOTOR-REF-CHECK-SIZE) SSIZE-T
-    (MSG :POINTER) (MEM_SIZE SIZE-T))
-  (DEFWRAPPER ("sns_msg_tag_motor_ref_init" SNS-MSG-TAG-MOTOR-REF-INIT) :VOID
-    (MSG :POINTER) (N UINT32-T))
-  (DEFWRAPPER
-      ("sns_msg_tag_motor_ref_heap_alloc" SNS-MSG-TAG-MOTOR-REF-HEAP-ALLOC) :POINTER
-    (N UINT32-T))
-  (DEFWRAPPER
-      ("sns_msg_tag_motor_ref_region_alloc" SNS-MSG-TAG-MOTOR-REF-REGION-ALLOC)
-      :POINTER (REG :POINTER) (N UINT32-T))
-  (DEFWRAPPER
-      ("sns_msg_tag_motor_ref_local_alloc" SNS-MSG-TAG-MOTOR-REF-LOCAL-ALLOC)
-      :POINTER (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_tag_motor_ref_put" SNS-MSG-TAG-MOTOR-REF-PUT)
-      ACH::ACH-STATUS-T (CHAN :POINTER) (MSG :POINTER))
-  (DEFWRAPPER ("sns_msg_tag_motor_ref_local_get" SNS-MSG-TAG-MOTOR-REF-LOCAL-GET)
-      ACH::ACH-STATUS-T (CHAN :POINTER) (PMSG :POINTER) (FRAME-SIZE :POINTER)
-      (TIMESPEC :POINTER) (OPTIONS :INT))
-  (DEFWRAPPER ("sns_msg_motor_state_size_n" SNS-MSG-MOTOR-STATE-SIZE-N) UINT32-T
-    (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_motor_state_size" SNS-MSG-MOTOR-STATE-SIZE) UINT32-T
-    (MSG :POINTER))
-  (DEFWRAPPER ("sns_msg_motor_state_check_size" SNS-MSG-MOTOR-STATE-CHECK-SIZE)
-      SSIZE-T (MSG :POINTER) (MEM_SIZE SIZE-T))
-  (DEFWRAPPER ("sns_msg_motor_state_init" SNS-MSG-MOTOR-STATE-INIT) :VOID
-    (MSG :POINTER) (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_motor_state_heap_alloc" SNS-MSG-MOTOR-STATE-HEAP-ALLOC)
-      :POINTER (N UINT32-T))
-  (DEFWRAPPER
-      ("sns_msg_motor_state_region_alloc" SNS-MSG-MOTOR-STATE-REGION-ALLOC) :POINTER
-    (REG :POINTER) (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_motor_state_local_alloc" SNS-MSG-MOTOR-STATE-LOCAL-ALLOC)
-      :POINTER (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_motor_state_put" SNS-MSG-MOTOR-STATE-PUT)
-      ACH::ACH-STATUS-T (CHAN :POINTER) (MSG :POINTER))
-  (DEFWRAPPER ("sns_msg_motor_state_local_get" SNS-MSG-MOTOR-STATE-LOCAL-GET)
-      ACH::ACH-STATUS-T (CHAN :POINTER) (PMSG :POINTER) (FRAME-SIZE :POINTER)
-      (TIMESPEC :POINTER) (OPTIONS :INT))
-  (DEFWRAPPER ("sns_msg_joystick_size_n" SNS-MSG-JOYSTICK-SIZE-N) UINT32-T
-    (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_joystick_size" SNS-MSG-JOYSTICK-SIZE) UINT32-T
-    (MSG :POINTER))
-  (DEFWRAPPER ("sns_msg_joystick_check_size" SNS-MSG-JOYSTICK-CHECK-SIZE) SSIZE-T
-    (MSG :POINTER) (MEM_SIZE SIZE-T))
-  (DEFWRAPPER ("sns_msg_joystick_init" SNS-MSG-JOYSTICK-INIT) :VOID
-    (MSG :POINTER) (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_joystick_heap_alloc" SNS-MSG-JOYSTICK-HEAP-ALLOC)
-      :POINTER (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_joystick_region_alloc" SNS-MSG-JOYSTICK-REGION-ALLOC)
-      :POINTER (REG :POINTER) (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_joystick_local_alloc" SNS-MSG-JOYSTICK-LOCAL-ALLOC)
-      :POINTER (N UINT32-T))
-  (DEFWRAPPER ("sns_msg_joystick_put" SNS-MSG-JOYSTICK-PUT) ACH::ACH-STATUS-T
-    (CHAN :POINTER) (MSG :POINTER))
-  (DEFWRAPPER ("sns_msg_joystick_local_get" SNS-MSG-JOYSTICK-LOCAL-GET)
-      ACH::ACH-STATUS-T (CHAN :POINTER) (PMSG :POINTER) (FRAME-SIZE :POINTER)
-      (TIMESPEC :POINTER) (OPTIONS :INT)))
+  #.(cons 'progn (loop for x in '("sns_msg_log" "sns_msg_vector" "sns_msg_tf" "sns_msg_wt_tf"
+		 "sns_msg_tf_dx" "sns_msg_motor_ref" "sns_msg_tag_motor_ref"
+		 "sns_msg_motor_state" "sns_msg_joystick")
+   do (loop for (func ret inp) in '(("_size_n" uint32-t ((n uint32-t)))
+				    ("_size" uint32-t ((msg :pointer)))
+				    ("_check_size" ssize-t ((msg :pointer)(mem_size size-t)))
+				    ("_init" :void ((msg :pointer)(n uint32-t)))
+				    ("_heap_alloc" :pointer ((n uint32-t)))
+				    ("_region_alloc" :pointer ((reg :pointer)(n uint32-t)))
+				    ("_local_alloc" :pointer ((n uint32-t)))
+				    ("_put" ach::ach-status-t ((chan :pointer)(msg :pointer)))
+				    ("_local_get" ach::ach-status-t
+				     ((chan :pointer)(pmsg :pointer)(frame-size :pointer)
+				      (timespec :pointer)(options :int))))
+	 do (let* ((name (concatenate 'string x func))
+		   (symb-name (intern (string-upcase (substitute #\- #\_ name)))))
+	      (append `(defwrapper (,name ,symb-name) ,ret)
+		      inp)))))
+  )
