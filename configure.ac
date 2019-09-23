@@ -141,10 +141,6 @@ AC_SUBST([SDL2_LIBS])
 
 AC_CONFIG_FILES([Makefile share/sns.pc Doxyfile])
 
-
-CXXFLAGS="$CFLAGS"
-AC_CONFIG_FILES([Makefile])
-
 AC_OUTPUT
 
 
