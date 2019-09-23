@@ -155,7 +155,8 @@ dnl     [PYTHON_VERSION=none])
 
 dnl AM_CONDITIONAL([HAVE_PYTHON],   [test x: != x$PYTHON -a x != x$PYTHON])
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile
+		 share/sns.pc])
 
 AC_OUTPUT
 
