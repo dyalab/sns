@@ -7,13 +7,18 @@ noinst_PROGRAMS =
 bin_SCRIPTS =
 
 include_HEADERS = include/sns.h
+
 pkginclude_HEADERS =                              \
 	include/sns/msg.h                         \
 	include/sns/util.h                        \
 	include/sns/daemon.h			   \
 	include/sns/event.h			   \
 	include/sns/path.h                         \
-        include/sns/sdh_tactile.h
+        include/sns/sdh_tactile.h                  \
+	include/sns/motor.h
+
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = share/sns.pc
 
 
 init_ddir = $(sysconfdir)/init.d
@@ -24,6 +29,11 @@ libsns_la_SOURCES = src/msg.c src/daemon.c src/util.c src/msg/path.c src/event.c
 libsns_la_LIBADD = -lach -lamino -lach-experimental
 
 ## PLUGINS
+lib_LTLIBRARIES += libsns_msg_text.la
+libsns_msg_text_la_SOURCES = src/msg_plugin.c
+libsns_msg_text_la_CFLAGS = $(CFLAGS) -DSNS_MSG_PLUGIN_TYPE=sns_msg_text
+libsns_msg_text_la_LIBADD = libsns.la
+
 lib_LTLIBRARIES += libsns_msg_joystick.la
 libsns_msg_joystick_la_SOURCES = src/msg_plugin.c
 libsns_msg_joystick_la_CFLAGS = $(CFLAGS) -DSNS_MSG_PLUGIN_TYPE=sns_msg_joystick
@@ -63,7 +73,6 @@ lib_LTLIBRARIES += libsns_msg_tf_dx.la
 libsns_msg_tf_dx_la_SOURCES = src/msg_plugin.c
 libsns_msg_tf_dx_la_CFLAGS = $(CFLAGS) -DSNS_MSG_PLUGIN_TYPE=sns_msg_tf_dx
 libsns_msg_tf_dx_la_LIBADD = libsns.la
-
 
 lib_LTLIBRARIES += libsns_msg_sdh_tactile.la
 libsns_msg_sdh_tactile_la_SOURCES = src/msg_plugin.c
@@ -113,7 +122,6 @@ sns_ksim_LDADD = libsns.la -lach-experimental -lach -lamino -lamino-gl
 bin_PROGRAMS += sns-teleopd
 sns_teleopd_SOURCES = src/bin/sns-teleopd.c
 sns_teleopd_LDADD = libsns.la -lach-experimental -lach -lamino
-
 
 bin_PROGRAMS += sns-joyd
 sns_joyd_SOURCES = src/driver/joystick/joyd.c src/driver/joystick/js.c

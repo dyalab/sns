@@ -42,4 +42,6 @@
   (:export :msg-get :msg-put :msg-decode :msg-aref
            ;; message types
            :msg-tf
-           :msg-wt-tf))
+           :msg-wt-tf
+	   ;; c structs
+	   :sns-msg-text))

@@ -495,3 +495,18 @@ void sns_msg_joystick_plot_sample(
     if( sample_size )
         *sample_size = msg->header.n;
 }
+
+
+/*---- text ----*/
+
+void sns_msg_text_dump (FILE *out, const struct sns_msg_text *msg ) {
+  dump_header( out, &msg->header, "text");
+  fprintf(out, "%s\n", msg->text);
+}
+
+void sns_msg_text_plot_sample(
+ const struct sns_msg_text *msg, double **sample_ptr, char ***sample_labels, size_t *sample_size ){
+   if( sample_size )
+        *sample_size = msg->header.n;
+  return;
+};	     /* If you are trying to plot a text message you are making a mistake */

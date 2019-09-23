@@ -385,6 +385,34 @@ SNS_DEF_MSG_VAR( sns_msg_log, text );
  */
 SNS_DEC_MSG_PLUGINS( sns_msg_log );
 
+/********/
+/* TEXT */
+/********/
+
+/**
+ * Message type for log messages.
+ */
+struct sns_msg_text {
+    /**
+     * Message header.
+     */
+    struct sns_msg_header header;
+    /**
+     * text.
+     */
+    char text[1];
+};
+
+/**
+ * Declare message functions.
+ */
+SNS_DEF_MSG_VAR( sns_msg_text, text );
+
+/**
+ * Declare message plugin functions.
+ */
+SNS_DEC_MSG_PLUGINS( sns_msg_text );
+
 /**********/
 /* Vector */
 /**********/

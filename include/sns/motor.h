@@ -335,6 +335,9 @@ sns_motor_state_init( const struct aa_rx_sg *scenegraph,
 AA_API struct aa_ct_state *
 sns_motor_state_get( struct sns_motor_state_set *state_set );
 
+AA_API void fill_state( size_t n_q, const struct sns_motor_map *map,
+                        const double *msg, size_t inc_msg, double *state );
+
 /**
  * Return the number of channel elements in list
  */

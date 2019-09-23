@@ -49,6 +49,7 @@
   (include "stdlib.h")
   (include "syslog.h")
   (include "sns.h")
+  (include "sns/motor.h")
 
   (ctype ach-status-t "ach_status_t")
   (ctype uint32-t "uint32_t")
@@ -66,10 +67,16 @@
            (ident "ident" :type :char :count "SNS_IDENT_LEN")
            )
 
+
+
   (cstruct sns-msg-log "struct sns_msg_log"
 	   (header "header" :type (:struct msg-header))
 	   (priority "priority" :type :int)
 	   (text "text" :type :pointer))
+
+  (cstruct sns-msg-text "struct sns_msg_text"
+	   (header "header" :type (:struct msg-header))
+	   (text  "text" :type :pointer))
 
   (cstruct sns-msg-vector "struct sns_msg_vector"
 	   (header "header" :type (:struct msg-header))

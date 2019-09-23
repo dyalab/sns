@@ -48,5 +48,7 @@
                (cffi-grovel:grovel-file "grovel" :depends-on ("package"))
 	       (:file "lib" :depends-on ("grovel"))
 	       (cffi-grovel:wrapper-file "wrappers" :depends-on ("lib"))
+	       (:file "structs" :depends-on ("wrappers"))
+	       (:file "sns-msg-text" :depends-on ("wrappers"))
 
-               (:file "sns" :depends-on ("package" "grovel"))))
+               (:file "sns" :depends-on ("structs"))))
