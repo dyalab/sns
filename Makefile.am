@@ -119,11 +119,6 @@ bin_PROGRAMS += sns-joyd
 sns_joyd_SOURCES = src/driver/joystick/joyd.c src/driver/joystick/js.c
 sns_joyd_LDADD = libsns.la -lach -lamino
 
-bin_PROGRAMS += sns-amino-ctrl
-sns_amino_ctrl_SOURCES = src/sns-amino-ctrl.c
-sns_amino_ctrl_LDADD = libsns.la -lach -lamino
-
-
 noinst_PROGRAMS += demo/motor-ref
 demo_motor_ref_SOURCES = demo/motor-ref.c
 demo_motor_ref_LDADD = libsns.la -lach -lamino
