@@ -43,12 +43,13 @@
 #include <ach/experimental.h>
 #include <getopt.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include <amino/rx/rxtype.h>
 #include <amino/rx/scenegraph.h>
 #include <amino/rx/scene_plugin.h>
 #include <amino/rx/scene_sub.h>
-#include <amino/rx/scene_kin.h>
+#include <amino/rx/scene_ik.h>
 #include <amino/rx/rx_ct.h>
 #include <amino/rx/scene_wk.h>
 
@@ -65,6 +66,7 @@ struct workspace_ctrl {
   aa_rx_frame_id end_effector;
 
   struct aa_rx_wk_opts *wk_opts;
+  struct aa_rx_fk *fk;
 
   size_t n_tf;
   size_t n_c;
@@ -204,6 +206,7 @@ main(int argc, char **argv)
       work_ctrl->n_c = aa_rx_sg_sub_config_count(work_ctrl->ssg);
       work_ctrl->wk_opts = aa_rx_wk_opts_create();
       work_ctrl->n_q = aa_rx_sg_config_count(cx.scenegraph);
+      work_ctrl->fk = aa_rx_fk_malloc(cx.scenegraph);
 
       cx.workspace_ctrl = work_ctrl;
     }
@@ -285,6 +288,11 @@ enum ach_status handle_js( void *cx_, void *msg_, size_t msg_size )
       cx->workspace = !cx->workspace;
       clock_gettime( ACH_DEFAULT_CLOCK,&cx->switch_time);
       cx->switch_time.tv_sec +=1;
+      struct aa_ct_state *state_act = cx->state_act;
+      size_t n_q  = cx->workspace_ctrl->n_q;
+      for( size_t i=0; i < n_q; i++){
+	printf("%lu: %f\n", i, state_act->q[i]);
+      }
     }
   }
 
@@ -300,6 +308,7 @@ enum ach_status handle_js( void *cx_, void *msg_, size_t msg_size )
   return ACH_OK;
 }
 
+/* TODO: this is probably broken, double check that the ik update didn't break anything */
 void teleop( struct cx *cx, struct sns_msg_joystick *msg )
 {
   /* Select axis to use based off of button map */
@@ -325,12 +334,16 @@ void teleop_wksp( struct cx *cx, struct sns_msg_joystick *msg )
 
   struct aa_rx_wk_opts *wk_opts = cx->workspace_ctrl->wk_opts;
   struct aa_ct_state *state_act = cx->state_act;
+  struct aa_rx_fk *fk           = cx->workspace_ctrl->fk;
 
   size_t n_tf = cx->workspace_ctrl->n_tf;
   size_t n_c  = cx->workspace_ctrl->n_c;
   size_t n_q  = cx->workspace_ctrl->n_q;
 
   /* Create array of workspace velocities */
+  struct aa_dvec dx = {0};
+
+
   size_t n_x = 6;
   double workspace_vel[n_x];
   workspace_vel[AA_TF_DX_V] =  -msg->axis[0];
@@ -339,6 +352,9 @@ void teleop_wksp( struct cx *cx, struct sns_msg_joystick *msg )
   workspace_vel[AA_TF_DX_W] = 0;
   workspace_vel[AA_TF_DX_W + 1] = 0;
   workspace_vel[AA_TF_DX_W + 2] = 0;
+  dx.len = 6;
+  dx.data = workspace_vel;
+  dx.inc = 1;
 
 
   /* Perform the transform on the scenegraph */
@@ -347,14 +363,17 @@ void teleop_wksp( struct cx *cx, struct sns_msg_joystick *msg )
   double TF_abs[n_tf * ld_TF];
 
   double q_subset[n_c];
+  struct aa_dvec dq={0};
+  dq.len = n_c;
 
   aa_rx_sg_config_get( cx->scenegraph, n_q, n_c,
   		       aa_rx_sg_sub_configs(cx->workspace_ctrl->ssg), state_act->q, q_subset );
   aa_rx_sg_tf(cx->scenegraph, n_q, state_act->q, n_tf, TF_rel, ld_TF, TF_abs, ld_TF);
 
   /* Transform workspace velocities to joint angle velocities */
-  aa_rx_wk_dx2dq(cx->workspace_ctrl->ssg, wk_opts, n_tf, TF_abs, ld_TF,
-		 n_x, workspace_vel, n_c, cx->ref_set->u);
+  aa_rx_wk_dx2dq(cx->workspace_ctrl->ssg, wk_opts, fk, &dx, &dq);
+
+  memcpy(cx->ref_set->u, dq.data, sizeof(double) * n_c);
 
   struct timespec now;
   clock_gettime( ACH_DEFAULT_CLOCK, &now );
