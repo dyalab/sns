@@ -55,23 +55,24 @@
 #include <sns/motor.h>
 
 struct cx {
-    struct aa_rx_sg *scenegraph;
+  struct aa_rx_sg *scenegraph;
 
-    struct sns_motor_channel *ref_in;
-    struct sns_motor_channel *state_out;
+  struct sns_motor_channel *ref_in;
+  struct sns_motor_channel *state_out;
 
-    struct sns_motor_ref_set *ref_set;
-    struct sns_motor_state_set *state_set;
+  struct sns_motor_ref_set *ref_set;
+  struct sns_motor_state_set *state_set;
 
-    struct timespec t;
+  struct timespec t;
 
-    size_t n_q;
-    uint64_t seq;
+  size_t n_q;
+  uint64_t seq;
 
-    struct aa_rx_win * win;
+  struct aa_rx_win * win;
 
-    struct sns_evhandler *handlers;
-    struct timespec period;
+  struct sns_evhandler *handlers;
+  size_t n_handlers;
+  struct timespec period;
 
 };
 
@@ -87,6 +88,18 @@ enum ach_status io_periodic( void *cx );
 /* Perform a simulation step */
 enum ach_status simulate( struct cx *cx );
 
+/* Generically apply some change to the scenegraph */
+enum ach_status handle_change(void *cx_, void *msg_, size_t frame_size);
+
+/* Reparent frames */
+enum ach_status handle_reparent(struct cx *cx, char* text, size_t size);
+
+/* Add new frame */
+enum ach_status handle_addition(struct cx *cx, char* text, size_t size);
+
+/* Remove frame */
+enum ach_status handle_removal(struct cx *cx, char* text, size_t size);
+
 int main(int argc, char **argv)
 {
     struct cx cx;
@@ -94,12 +107,14 @@ int main(int argc, char **argv)
 
     const double opt_sim_frequecy = 100;
     struct sns_motor_channel *last_mc = NULL;
+    char *opt_change_chan = NULL;
+    struct ach_channel change;
 
     /* Parse Options */
     {
         int c = 0;
         opterr = 0;
-        while( (c = getopt( argc, argv, "y:u:p:h?" SNS_OPTSTRING)) != -1 ) {
+        while( (c = getopt( argc, argv, "y:u:p:h?c:" SNS_OPTSTRING)) != -1 ) {
             switch(c) {
                 SNS_OPTCASES_VERSION("sns-ksim",
                                      "Copyright (c) 2017, Rice University\n",
@@ -119,6 +134,10 @@ int main(int argc, char **argv)
                     SNS_DIE("No channel specified for priority argument");
                 }
                 break;
+	    case 'c':
+	      opt_change_chan = strdup(optarg);
+	      sns_chan_open(&change, opt_change_chan, NULL);
+	      break;
             case '?':   /* help     */
             case 'h':
                 puts( "Usage: sns-ksim -u REF_CHANNEL -y STATE_CHANNEL\n"
@@ -153,9 +172,13 @@ int main(int argc, char **argv)
     sns_init();
 
     /* Scene Plugin */
+    SNS_LOG(LOG_DEBUG, "before scene load\n");
     cx.scenegraph = sns_scene_load();
-    cx.n_q = aa_rx_sg_config_count(cx.scenegraph);
 
+    aa_rx_sg_init(cx.scenegraph);
+     SNS_LOG(LOG_DEBUG, "before config count\n");
+    cx.n_q = aa_rx_sg_config_count(cx.scenegraph);
+    SNS_LOG(LOG_DEBUG, "before motor stat init\n");
     /* State */
     sns_motor_state_init(cx.scenegraph,
                          cx.state_out, &cx.state_set,
@@ -166,10 +189,21 @@ int main(int argc, char **argv)
     SNS_REQUIRE( cx.ref_in, "Need reference channel");
     {
         size_t n_ref = sns_motor_channel_count(cx.ref_in);
-        cx.handlers = AA_NEW_AR( struct sns_evhandler, n_ref );
-        sns_motor_ref_init(cx.scenegraph,
-                           cx.ref_in, &cx.ref_set,
-                           n_ref, cx.handlers);
+
+	if( opt_change_chan ){
+	  cx.handlers = AA_NEW_AR( struct sns_evhandler, n_ref + 1);
+	  cx.handlers[n_ref].channel = &change;
+	  cx.handlers[n_ref].context = &cx;
+	  cx.handlers[n_ref].handler = handle_change;
+	  cx.handlers[n_ref].ach_options = ACH_O_FIRST;
+	  cx.n_handlers = n_ref + 1;
+	}else{
+	  cx.handlers = AA_NEW_AR( struct sns_evhandler, n_ref);
+	  cx.n_handlers = n_ref;
+	}
+	sns_motor_ref_init(cx.scenegraph,
+			     cx.ref_in, &cx.ref_set,
+			     n_ref, cx.handlers);
     }
 
     SNS_LOG(LOG_INFO, "Simulation Frequency: %.3fkHz\n", opt_sim_frequecy/1e3);
@@ -206,6 +240,90 @@ int main(int argc, char **argv)
     return 0;
 }
 
+void parse_string(char* dst, char* src, size_t* len){
+  size_t i=0;
+  while( ' ' != src[i] && '\0' != src[i]) i++;
+
+  *len = i;
+
+  strncpy(dst, src, i);
+  dst[i] = '\0';
+  SNS_LOG(LOG_DEBUG, "parsed string: %s\n", dst);
+}
+
+enum ach_status handle_change(void *cx_, void *msg_, size_t frame_size){
+  struct cx *cx = (struct cx*) cx_;
+  struct sns_msg_text *msg = (struct sns_msg_text*) msg_;
+  if(SNS_LOG_PRIORITY(LOG_INFO)) sns_msg_text_dump(stdout, msg);
+
+  size_t n_action = 0;
+  char action[frame_size];
+  parse_string(action, msg->text, &n_action);
+  SNS_LOG(LOG_DEBUG, "action: %s\n", action);
+
+
+  if(strcmp(action, "reparent") == 0){
+    return handle_reparent(cx, &msg->text[n_action+1], frame_size);
+  }else if(strcmp(action, "add") == 0){
+    return handle_addition(cx, &msg->text[n_action+1], frame_size);
+  }else if(strcmp(action, "remove") == 0){
+    return handle_removal(cx, &msg->text[n_action+1],frame_size);
+  }else{
+    SNS_DIE("unknown change detected: %s\n", action);
+    return ACH_OK;
+  }
+}
+
+
+enum ach_status handle_reparent(struct cx *cx, char* text, size_t size){
+  size_t n_frame  = 0;
+  size_t n_parent = 0;
+
+  char frame[size];
+  char parent[size];
+  parse_string(frame, text, &n_frame);
+  parse_string(parent, &text[n_frame+1], &n_parent);
+  SNS_LOG(LOG_DEBUG,"frame: %s. Parent: %s\n", frame, parent);
+  const double E1[7] = {1, 0, 0, 0, 0, 0, 0};
+
+  aa_rx_sg_reparent_name(cx->scenegraph, parent, frame, E1);
+  aa_rx_sg_init(cx->scenegraph);
+  return ACH_OK;
+}
+
+enum ach_status handle_addition(struct cx *cx, char* text, size_t size){
+  size_t n_frame  = 0;
+  size_t n_parent = 0;
+  size_t n_geom   = 0;
+
+  char frame[size];
+  char parent[size];
+  char src_geom[size];
+  parse_string(frame, text, &n_frame);
+  parse_string(parent, &text[n_frame+1], &n_parent);
+  parse_string(src_geom, &text[n_frame+n_parent+2], &n_geom);
+
+  const double q[4] = {1, 0, 0, 0};
+  const double v[3] = {0, 0, 0};
+
+  aa_rx_sg_add_frame_fixed(cx->scenegraph, parent, frame, q, v);
+  aa_rx_sg_copy_frame_geom(cx->scenegraph, src_geom, frame);
+  aa_rx_sg_init(cx->scenegraph);
+  return ACH_OK;
+}
+
+ enum ach_status handle_removal(struct cx *cx, char* text, size_t size){
+   size_t n_frame = 0;
+
+   char frame[size];
+   parse_string(frame, text, &n_frame);
+
+   aa_rx_sg_rm_frame(cx->scenegraph, frame);
+   aa_rx_sg_init(cx->scenegraph);
+   return ACH_OK;
+ }
+
+
 
 void* io_start(void *cx) {
     io((struct cx*)cx);
@@ -214,7 +332,7 @@ void* io_start(void *cx) {
 
 void io(struct cx *cx) {
     /* Run Loop */
-    enum ach_status r = sns_evhandle( cx->handlers, sns_motor_channel_count(cx->ref_in),
+    enum ach_status r = sns_evhandle( cx->handlers, cx->n_handlers,
                                       &cx->period, io_periodic, cx,
                                       sns_sig_term_default,
                                       ACH_EV_O_PERIODIC_TIMEOUT );
@@ -289,7 +407,7 @@ enum ach_status simulate( struct cx *cx )
             }
         } else {
             /* reference has expired */
-            *dq = 0;
+	  *dq = 0;
         }
     }
 
