@@ -100,6 +100,9 @@ enum ach_status handle_addition(struct cx *cx, char* text, size_t size);
 /* Remove frame */
 enum ach_status handle_removal(struct cx *cx, char* text, size_t size);
 
+/* Add new frame at coordinates */
+enum ach_status handle_coordinate_addition( struct cx *cx, char* text, size_t size);
+
 int main(int argc, char **argv)
 {
     struct cx cx;
@@ -134,10 +137,10 @@ int main(int argc, char **argv)
                     SNS_DIE("No channel specified for priority argument");
                 }
                 break;
-	    case 'c':
-	      opt_change_chan = strdup(optarg);
-	      sns_chan_open(&change, opt_change_chan, NULL);
-	      break;
+            case 'c':
+              opt_change_chan = strdup(optarg);
+              sns_chan_open(&change, opt_change_chan, NULL);
+              break;
             case '?':   /* help     */
             case 'h':
                 puts( "Usage: sns-ksim -u REF_CHANNEL -y STATE_CHANNEL\n"
@@ -190,20 +193,20 @@ int main(int argc, char **argv)
     {
         size_t n_ref = sns_motor_channel_count(cx.ref_in);
 
-	if( opt_change_chan ){
-	  cx.handlers = AA_NEW_AR( struct sns_evhandler, n_ref + 1);
-	  cx.handlers[n_ref].channel = &change;
-	  cx.handlers[n_ref].context = &cx;
-	  cx.handlers[n_ref].handler = handle_change;
-	  cx.handlers[n_ref].ach_options = ACH_O_FIRST;
-	  cx.n_handlers = n_ref + 1;
-	}else{
-	  cx.handlers = AA_NEW_AR( struct sns_evhandler, n_ref);
-	  cx.n_handlers = n_ref;
-	}
-	sns_motor_ref_init(cx.scenegraph,
-			     cx.ref_in, &cx.ref_set,
-			     n_ref, cx.handlers);
+        if( opt_change_chan ){
+          cx.handlers = AA_NEW_AR( struct sns_evhandler, n_ref + 1);
+          cx.handlers[n_ref].channel = &change;
+          cx.handlers[n_ref].context = &cx;
+          cx.handlers[n_ref].handler = handle_change;
+          cx.handlers[n_ref].ach_options = ACH_O_FIRST;
+          cx.n_handlers = n_ref + 1;
+        }else{
+          cx.handlers = AA_NEW_AR( struct sns_evhandler, n_ref);
+          cx.n_handlers = n_ref;
+        }
+        sns_motor_ref_init(cx.scenegraph,
+                             cx.ref_in, &cx.ref_set,
+                             n_ref, cx.handlers);
     }
 
     SNS_LOG(LOG_INFO, "Simulation Frequency: %.3fkHz\n", opt_sim_frequecy/1e3);
@@ -263,14 +266,16 @@ enum ach_status handle_change(void *cx_, void *msg_, size_t frame_size){
 
 
   if(strcmp(action, "reparent") == 0){
-    return handle_reparent(cx, &msg->text[n_action+1], frame_size);
+      return handle_reparent(cx, &msg->text[n_action+1], frame_size);
   }else if(strcmp(action, "add") == 0){
-    return handle_addition(cx, &msg->text[n_action+1], frame_size);
+      return handle_addition(cx, &msg->text[n_action+1], frame_size);
   }else if(strcmp(action, "remove") == 0){
-    return handle_removal(cx, &msg->text[n_action+1],frame_size);
+      return handle_removal(cx, &msg->text[n_action+1],frame_size);
+  }else if(strcmp(action, "addC") == 0){
+      return handle_coordinate_addition(cx,&msg->text[n_action+1], frame_size);
   }else{
-    SNS_DIE("unknown change detected: %s\n", action);
-    return ACH_OK;
+      SNS_DIE("unknown change detected: %s\n", action);
+      return ACH_OK;
   }
 }
 
@@ -322,6 +327,45 @@ enum ach_status handle_addition(struct cx *cx, char* text, size_t size){
    aa_rx_sg_init(cx->scenegraph);
    return ACH_OK;
  }
+
+enum ach_status handle_coordinate_addition( struct cx *cx, char* text, size_t size){
+    size_t n_frame  = 0;
+    size_t n_geom   = 0;
+    size_t n_x      = 0;
+    size_t n_y      = 0;
+    size_t n_z      = 0;
+
+    size_t acc      =0;
+
+    char frame[size];
+    char src_geom[size];
+    char x_str[size];
+    char y_str[size];
+    char z_str[size];
+
+    parse_string(frame, text, &n_frame);
+    acc+=n_frame+1;
+    parse_string(src_geom, &text[acc], &n_geom);
+    acc+=n_geom+1;
+    parse_string(x_str, &text[acc], &n_x);
+    acc+=n_x+1;
+    parse_string(y_str, &text[acc], &n_y);
+    acc+=n_y+1;
+    parse_string(z_str, &text[acc], &n_z);
+
+    const double q[4] = {1, 0, 0, 0};
+    const double v[3] = {atoi(x_str), atoi(y_str), atoi(z_str)};
+
+    SNS_LOG(LOG_DEBUG, "completely parsed string\n");
+    SNS_LOG(LOG_DEBUG, "name: %s. type: %s. location %f %f %f.\n",
+            frame, src_geom, v[0], v[1], v[2]);
+    aa_rx_sg_add_frame_fixed(cx->scenegraph, "", frame, q, v);
+    SNS_LOG(LOG_DEBUG, "added frame\n");
+    aa_rx_sg_copy_frame_geom(cx->scenegraph, src_geom, frame);
+    aa_rx_sg_init(cx->scenegraph);
+    return ACH_OK;
+
+}
 
 
 
@@ -407,7 +451,7 @@ enum ach_status simulate( struct cx *cx )
             }
         } else {
             /* reference has expired */
-	  *dq = 0;
+          *dq = 0;
         }
     }
 
