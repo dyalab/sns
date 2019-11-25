@@ -67,64 +67,77 @@
            (ident "ident" :type :char :count "SNS_IDENT_LEN")
            )
 
-
-
   (cstruct sns-msg-log "struct sns_msg_log"
-	   (header "header" :type (:struct msg-header))
-	   (priority "priority" :type :int)
-	   (text "text" :type :pointer))
+           (header "header" :type (:struct msg-header))
+           (priority "priority" :type :int)
+           (text "text" :type :pointer))
 
   (cstruct sns-msg-text "struct sns_msg_text"
-	   (header "header" :type (:struct msg-header))
-	   (text  "text" :type :pointer))
+           (header "header" :type (:struct msg-header))
+           (text  "text" :type :pointer))
+
+  (cenum sns-sg-update
+         ((:add "SNS_ADD_FRAME"))
+         ((:remove "SNS_REMOVE_FRAME"))
+         ((:reparent "SNS_REPARENT_FRAME")))
+
+  (cstruct sns-msg-sg-update "struct sns_msg_sg_update"
+           (header "header" :type (:struct msg-header))
+           (type "type" :type sns-sg-update)
+           (frame "frame" :type :int64)
+           (parent "parent" :type :int64)
+           (q "q" :type :pointer)
+           (v "v" :type :pointer)
+           (copy-frame "copy_frame" :type :int64)
+           (name "name" :type :pointer))
 
   (cstruct sns-msg-vector "struct sns_msg_vector"
-	   (header "header" :type (:struct msg-header))
-	   (x "x" :type :pointer))
+           (header "header" :type (:struct msg-header))
+           (x "x" :type :pointer))
 
   (cstruct sns-msg-matrix "struct sns_msg_matrix"
-	   (header "header" :type (:struct msg-header))
-	   (rows "rows" :type uint64-t)
-	   (cols "cols" :type uint64-t)
-	   (x "x" :type :pointer))
+           (header "header" :type (:struct msg-header))
+           (rows "rows" :type uint64-t)
+           (cols "cols" :type uint64-t)
+           (x "x" :type :pointer))
 
   (cstruct sns-msg-tf "struct sns_msg_tf"
-	   (header "header" :type (:struct msg-header))
-	   (tf "tf" :type :pointer))
+           (header "header" :type (:struct msg-header))
+           (tf "tf" :type :pointer))
 
   (cstruct sns-msg-wt-tf "struct sns_msg_wt_tf"
-	   (header "header" :type (:struct msg-header))
-	   (wt-tf "wt_tf" :type :pointer))
+           (header "header" :type (:struct msg-header))
+           (wt-tf "wt_tf" :type :pointer))
 
   (cstruct sns-msg-tf-dx "struct sns_msg_tf_dx"
-	   (header "header" :type (:struct msg-header))
-	   (tf-dx "tf_dx" :type :pointer))
+           (header "header" :type (:struct msg-header))
+           (tf-dx "tf_dx" :type :pointer))
 
   (cenum motor-mode
-	 ((:halt "SNS_MOTOR_MODE_HALT"))
-	 ((:pos "SNS_MOTOR_MODE_POS"))
-	 ((:vel "SNS_MOTOR_MODE_VEL"))
-	 ((:torq "SNS_MOTOR_MODE_TORQ"))
-	 ((:cur "SNS_MOTOR_MODE_CUR"))
-	 ((:reset "SNS_MOTOR_MODE_RESET"))
-	 ((:pos-offset "SNS_MOTOR_MODE_POS_OFFSET")))
+         ((:halt "SNS_MOTOR_MODE_HALT"))
+         ((:pos "SNS_MOTOR_MODE_POS"))
+         ((:vel "SNS_MOTOR_MODE_VEL"))
+         ((:torq "SNS_MOTOR_MODE_TORQ"))
+         ((:cur "SNS_MOTOR_MODE_CUR"))
+         ((:reset "SNS_MOTOR_MODE_RESET"))
+         ((:pos-offset "SNS_MOTOR_MODE_POS_OFFSET")))
 
   (cstruct sns-msg-motor-ref "struct sns_msg_motor_ref"
-	   (header "header" :type (:struct msg-header))
-	   (mode "mode" :type motor-mode)
-	   (u "u" :type :pointer))
+           (header "header" :type (:struct msg-header))
+           (mode "mode" :type motor-mode)
+           (u "u" :type :pointer))
 
   (cstruct sns-msg-tag-motor-ref "struct sns_msg_tag_motor_ref"
-	  (header "header" :type (:struct msg-header))
-	  (mode "mode" :type motor-mode)
-	  (u "u" :type :pointer))
+          (header "header" :type (:struct msg-header))
+          (mode "mode" :type motor-mode)
+          (u "u" :type :pointer))
 
   (cstruct sns-msg-motor-state "struct sns_msg_motor_state"
-	   (header "header" :type (:struct msg-header))
-	   (mode "mode" :type motor-mode)
-	   (X "X" :type :pointer))
+           (header "header" :type (:struct msg-header))
+           (mode "mode" :type motor-mode)
+           (X "X" :type :pointer))
 
   (cstruct sns-msg-joystick "struct sns_msg_joystick"
-	   (header "header" :type (:struct msg-header))
-	   (buttons "buttons" :type uint64-t)
-	   (axis "axis" :type :pointer)))
+           (header "header" :type (:struct msg-header))
+           (buttons "buttons" :type uint64-t)
+           (axis "axis" :type :pointer)))

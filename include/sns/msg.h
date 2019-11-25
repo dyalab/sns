@@ -65,6 +65,8 @@ extern "C" {
  * @author Neil T. Dantam
  */
 
+#include <amino/rx/scenegraph.h>
+
 /***************/
 /* Basic Types */
 /***************/
@@ -412,6 +414,66 @@ SNS_DEF_MSG_VAR( sns_msg_text, text );
  * Declare message plugin functions.
  */
 SNS_DEC_MSG_PLUGINS( sns_msg_text );
+
+/*********************/
+/* Scenegraph update */
+/*********************/
+
+enum sns_sg_update {
+    SNS_ADD_FRAME = 1,
+    SNS_REMOVE_FRAME = 2,
+    SNS_REPARENT_FRAME = 3
+};
+
+/**
+ * Message type for amino scenegraph updates
+ */
+struct sns_msg_sg_update {
+    /**
+     * Message header.
+     */
+    struct sns_msg_header header;
+    /**
+     * type of update
+     */
+    enum sns_sg_update type;
+    /**
+     * Frame ID of frame in question
+     */
+    aa_rx_frame_id frame;
+    /**
+     * Parent frame of the frame in question
+     */
+    aa_rx_frame_id parent;
+    /**
+     * Quaternian rotation
+     */
+    double q[4];
+    /**
+     * xyz translation
+     */
+    double v[3];
+    /**
+     * Frame to copy geometry from
+     */
+    aa_rx_frame_id copy_frame;
+    /**
+     * Frame name.
+     */
+    char name[1];
+};
+
+/**
+ * Declare message functions.
+ */
+SNS_DEF_MSG_VAR( sns_msg_sg_update, name );
+
+/**
+ * Declare message plugin functions.
+ */
+SNS_DEC_MSG_PLUGINS( sns_msg_sg_update );
+
+const char* sns_sg_update_str( enum sns_sg_update mode );
 
 /**********/
 /* Vector */

@@ -92,16 +92,13 @@ enum ach_status simulate( struct cx *cx );
 enum ach_status handle_change(void *cx_, void *msg_, size_t frame_size);
 
 /* Reparent frames */
-enum ach_status handle_reparent(struct cx *cx, char* text, size_t size);
+enum ach_status handle_reparent(struct cx *cx, struct sns_msg_sg_update* msg, size_t size);
 
 /* Add new frame */
-enum ach_status handle_addition(struct cx *cx, char* text, size_t size);
+enum ach_status handle_addition(struct cx *cx, struct sns_msg_sg_update* msg, size_t size);
 
 /* Remove frame */
-enum ach_status handle_removal(struct cx *cx, char* text, size_t size);
-
-/* Add new frame at coordinates */
-enum ach_status handle_coordinate_addition( struct cx *cx, char* text, size_t size);
+enum ach_status handle_removal(struct cx *cx, struct sns_msg_sg_update* msg, size_t size);
 
 int main(int argc, char **argv)
 {
@@ -256,117 +253,62 @@ void parse_string(char* dst, char* src, size_t* len){
 
 enum ach_status handle_change(void *cx_, void *msg_, size_t frame_size){
   struct cx *cx = (struct cx*) cx_;
-  struct sns_msg_text *msg = (struct sns_msg_text*) msg_;
-  if(SNS_LOG_PRIORITY(LOG_INFO)) sns_msg_text_dump(stdout, msg);
+  struct sns_msg_sg_update *msg = (struct sns_msg_sg_update*) msg_;
 
-  size_t n_action = 0;
-  char action[frame_size];
-  parse_string(action, msg->text, &n_action);
-  SNS_LOG(LOG_DEBUG, "action: %s\n", action);
+  if(SNS_LOG_PRIORITY(LOG_INFO)) sns_msg_sg_update_dump(stdout, msg);
 
 
-  if(strcmp(action, "reparent") == 0){
-      return handle_reparent(cx, &msg->text[n_action+1], frame_size);
-  }else if(strcmp(action, "add") == 0){
-      return handle_addition(cx, &msg->text[n_action+1], frame_size);
-  }else if(strcmp(action, "remove") == 0){
-      return handle_removal(cx, &msg->text[n_action+1],frame_size);
-  }else if(strcmp(action, "addC") == 0){
-      return handle_coordinate_addition(cx,&msg->text[n_action+1], frame_size);
+  enum sns_sg_update type = msg->type;
+  SNS_LOG(LOG_DEBUG, "action: %s\n", sns_sg_update_str(type));
+
+
+  if(type == SNS_REPARENT_FRAME){
+      return handle_reparent(cx, msg, frame_size);
+  }else if(type == SNS_ADD_FRAME){
+      return handle_addition(cx, msg, frame_size);
+  }else if(type == SNS_REMOVE_FRAME){
+      return handle_removal(cx, msg,frame_size);
   }else{
-      SNS_DIE("unknown change detected: %s\n", action);
+      SNS_DIE("unknown change detected: %ld\n", type);
       return ACH_OK;
   }
 }
 
 
-enum ach_status handle_reparent(struct cx *cx, char* text, size_t size){
-  size_t n_frame  = 0;
-  size_t n_parent = 0;
+enum ach_status handle_reparent(struct cx *cx, struct sns_msg_sg_update* msg, size_t size){
+    aa_rx_frame_id frame = msg->frame;
+    aa_rx_frame_id new_parent = msg->parent;
 
-  char frame[size];
-  char parent[size];
-  parse_string(frame, text, &n_frame);
-  parse_string(parent, &text[n_frame+1], &n_parent);
-  SNS_LOG(LOG_DEBUG,"frame: %s. Parent: %s\n", frame, parent);
-  const double E1[7] = {1, 0, 0, 0, 0, 0, 0};
+    SNS_LOG(LOG_DEBUG,"frame: %s. Parent: %s\n",
+            aa_rx_sg_frame_name(cx->scenegraph, frame),
+            aa_rx_sg_frame_name(cx->scenegraph, new_parent));
+    const double E1[7];
+    AA_MEM_CPY(E1, msg->q, 4);
+    AA_MEM_CPY(&E1[4], msg->v, 3);
 
-  aa_rx_sg_reparent_name(cx->scenegraph, parent, frame, E1);
-  aa_rx_sg_init(cx->scenegraph);
-  return ACH_OK;
-}
-
-enum ach_status handle_addition(struct cx *cx, char* text, size_t size){
-  size_t n_frame  = 0;
-  size_t n_parent = 0;
-  size_t n_geom   = 0;
-
-  char frame[size];
-  char parent[size];
-  char src_geom[size];
-  parse_string(frame, text, &n_frame);
-  parse_string(parent, &text[n_frame+1], &n_parent);
-  parse_string(src_geom, &text[n_frame+n_parent+2], &n_geom);
-
-  const double q[4] = {1, 0, 0, 0};
-  const double v[3] = {0, 0, 0};
-
-  aa_rx_sg_add_frame_fixed(cx->scenegraph, parent, frame, q, v);
-  aa_rx_sg_copy_frame_geom(cx->scenegraph, src_geom, frame);
-  aa_rx_sg_init(cx->scenegraph);
-  return ACH_OK;
-}
-
- enum ach_status handle_removal(struct cx *cx, char* text, size_t size){
-   size_t n_frame = 0;
-
-   char frame[size];
-   parse_string(frame, text, &n_frame);
-
-   aa_rx_sg_rm_frame(cx->scenegraph, frame);
-   aa_rx_sg_init(cx->scenegraph);
-   return ACH_OK;
- }
-
-enum ach_status handle_coordinate_addition( struct cx *cx, char* text, size_t size){
-    size_t n_frame  = 0;
-    size_t n_geom   = 0;
-    size_t n_x      = 0;
-    size_t n_y      = 0;
-    size_t n_z      = 0;
-
-    size_t acc      =0;
-
-    char frame[size];
-    char src_geom[size];
-    char x_str[size];
-    char y_str[size];
-    char z_str[size];
-
-    parse_string(frame, text, &n_frame);
-    acc+=n_frame+1;
-    parse_string(src_geom, &text[acc], &n_geom);
-    acc+=n_geom+1;
-    parse_string(x_str, &text[acc], &n_x);
-    acc+=n_x+1;
-    parse_string(y_str, &text[acc], &n_y);
-    acc+=n_y+1;
-    parse_string(z_str, &text[acc], &n_z);
-
-    const double q[4] = {1, 0, 0, 0};
-    const double v[3] = {atoi(x_str), atoi(y_str), atoi(z_str)};
-
-    SNS_LOG(LOG_DEBUG, "completely parsed string\n");
-    SNS_LOG(LOG_DEBUG, "name: %s. type: %s. location %f %f %f.\n",
-            frame, src_geom, v[0], v[1], v[2]);
-    aa_rx_sg_add_frame_fixed(cx->scenegraph, "", frame, q, v);
-    SNS_LOG(LOG_DEBUG, "added frame\n");
-    aa_rx_sg_copy_frame_geom(cx->scenegraph, src_geom, frame);
+    aa_rx_sg_reparent_id(cx->scenegraph, new_parent, frame, E1);
     aa_rx_sg_init(cx->scenegraph);
     return ACH_OK;
-
 }
 
+enum ach_status handle_addition(struct cx *cx, struct sns_msg_sg_update* msg, size_t size)
+{
+    aa_rx_sg_add_frame_fixed(cx->scenegraph,
+                             aa_rx_sg_frame_name(cx->scenegraph, msg->parent),
+                             msg->name, msg->q, msg->v);
+    aa_rx_sg_init(cx->scenegraph);
+    aa_rx_sg_copy_frame_geom(cx->scenegraph,
+                             aa_rx_sg_frame_name(cx->scenegraph, msg->copy_frame),
+                             msg->name);
+    aa_rx_sg_init(cx->scenegraph);
+    return ACH_OK;
+}
+
+ enum ach_status handle_removal(struct cx *cx, struct sns_msg_sg_update* msg, size_t size){
+     aa_rx_sg_rm_frame(cx->scenegraph, aa_rx_sg_frame_name(cx->scenegraph, msg->frame));
+     aa_rx_sg_init(cx->scenegraph);
+     return ACH_OK;
+ }
 
 
 void* io_start(void *cx) {

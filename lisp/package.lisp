@@ -43,5 +43,6 @@
            ;; message types
            :msg-tf
            :msg-wt-tf
-	   ;; c structs
-	   :sns-msg-text))
+           ;; c structs
+           :sns-msg-text
+           :sns-msg-sg-update))
