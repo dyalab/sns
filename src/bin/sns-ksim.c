@@ -263,11 +263,11 @@ enum ach_status handle_change(void *cx_, void *msg_, size_t frame_size){
 
 
   if(type == SNS_REPARENT_FRAME){
-      return handle_reparent(cx, msg, frame_size);
+      return sg_make_reparent(msg, cx->scenegraph);
   }else if(type == SNS_ADD_FRAME){
-      return handle_addition(cx, msg, frame_size);
+      return sg_make_addition(msg, cx->scenegraph);
   }else if(type == SNS_REMOVE_FRAME){
-      return handle_removal(cx, msg,frame_size);
+      return sg_make_remove(msg, cx->scenegraph);
   }else{
       SNS_DIE("unknown change detected: %ld\n", type);
       return ACH_OK;

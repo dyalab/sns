@@ -15,7 +15,8 @@ pkginclude_HEADERS =                              \
 	include/sns/event.h			   \
 	include/sns/path.h                         \
         include/sns/sdh_tactile.h                  \
-	include/sns/motor.h
+	include/sns/motor.h			   \
+	include/sns/scenegraph.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = share/sns.pc
@@ -25,10 +26,21 @@ init_ddir = $(sysconfdir)/init.d
 init_d_SCRIPTS = scripts/sns
 
 lib_LTLIBRARIES = libsns.la
-libsns_la_SOURCES = src/msg.c src/daemon.c src/util.c src/msg/path.c src/event.c src/motor.c
+libsns_la_SOURCES = src/msg.c        \
+		    src/daemon.c     \
+		    src/util.c       \
+		    src/msg/path.c   \
+		    src/event.c      \
+		    src/motor.c      \
+		    src/sg-updates.c
 libsns_la_LIBADD = -lach -lamino -lach-experimental
 
 ## PLUGINS
+lib_LTLIBRARIES += libsns_msg_sg_update.la
+libsns_msg_sg_update_la_SOURCES = src/msg_plugin.c
+libsns_msg_sg_update_la_CFLAGS = $(CFLAGS) -DSNS_MSG_PLUGIN_TYPE=sns_msg_sg_update
+libsns_msg_sg_update_la_LIBADD = libsns.la
+
 lib_LTLIBRARIES += libsns_msg_text.la
 libsns_msg_text_la_SOURCES = src/msg_plugin.c
 libsns_msg_text_la_CFLAGS = $(CFLAGS) -DSNS_MSG_PLUGIN_TYPE=sns_msg_text
