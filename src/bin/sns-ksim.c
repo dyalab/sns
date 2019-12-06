@@ -91,15 +91,6 @@ enum ach_status simulate( struct cx *cx );
 /* Generically apply some change to the scenegraph */
 enum ach_status handle_change(void *cx_, void *msg_, size_t frame_size);
 
-/* Reparent frames */
-enum ach_status handle_reparent(struct cx *cx, struct sns_msg_sg_update* msg, size_t size);
-
-/* Add new frame */
-enum ach_status handle_addition(struct cx *cx, struct sns_msg_sg_update* msg, size_t size);
-
-/* Remove frame */
-enum ach_status handle_removal(struct cx *cx, struct sns_msg_sg_update* msg, size_t size);
-
 int main(int argc, char **argv)
 {
     struct cx cx;
@@ -273,43 +264,6 @@ enum ach_status handle_change(void *cx_, void *msg_, size_t frame_size){
       return ACH_OK;
   }
 }
-
-
-enum ach_status handle_reparent(struct cx *cx, struct sns_msg_sg_update* msg, size_t size){
-    aa_rx_frame_id frame = msg->frame;
-    aa_rx_frame_id new_parent = msg->parent;
-
-    SNS_LOG(LOG_DEBUG,"frame: %s. Parent: %s\n",
-            aa_rx_sg_frame_name(cx->scenegraph, frame),
-            aa_rx_sg_frame_name(cx->scenegraph, new_parent));
-    const double E1[7];
-    AA_MEM_CPY(E1, msg->q, 4);
-    AA_MEM_CPY(&E1[4], msg->v, 3);
-
-    aa_rx_sg_reparent_id(cx->scenegraph, new_parent, frame, E1);
-    aa_rx_sg_init(cx->scenegraph);
-    return ACH_OK;
-}
-
-enum ach_status handle_addition(struct cx *cx, struct sns_msg_sg_update* msg, size_t size)
-{
-    aa_rx_sg_add_frame_fixed(cx->scenegraph,
-                             aa_rx_sg_frame_name(cx->scenegraph, msg->parent),
-                             msg->name, msg->q, msg->v);
-    aa_rx_sg_init(cx->scenegraph);
-    aa_rx_sg_copy_frame_geom(cx->scenegraph,
-                             aa_rx_sg_frame_name(cx->scenegraph, msg->copy_frame),
-                             msg->name);
-    aa_rx_sg_init(cx->scenegraph);
-    return ACH_OK;
-}
-
- enum ach_status handle_removal(struct cx *cx, struct sns_msg_sg_update* msg, size_t size){
-     aa_rx_sg_rm_frame(cx->scenegraph, aa_rx_sg_frame_name(cx->scenegraph, msg->frame));
-     aa_rx_sg_init(cx->scenegraph);
-     return ACH_OK;
- }
-
 
 void* io_start(void *cx) {
     io((struct cx*)cx);

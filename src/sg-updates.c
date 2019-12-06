@@ -154,9 +154,9 @@ enum ach_status sg_make_reparent(struct sns_msg_sg_update* msg, struct aa_rx_sg 
     aa_rx_frame_id frame = msg->frame;
     aa_rx_frame_id new_parent = msg->parent;
 
-    SNS_LOG(LOG_DEBUG,"frame: %s. Parent: %s\n",
-            aa_rx_sg_frame_name(scenegraph, frame),
-            aa_rx_sg_frame_name(scenegraph, new_parent));
+    SNS_LOG(LOG_DEBUG,"frame: %s (%u). Parent: %s (%u)\n",
+            aa_rx_sg_frame_name(scenegraph, frame), frame,
+            aa_rx_sg_frame_name(scenegraph, new_parent), new_parent);
     const double E1[7];
     AA_MEM_CPY(E1, msg->q, 4);
     AA_MEM_CPY(&E1[4], msg->v, 3);
