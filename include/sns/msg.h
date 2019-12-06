@@ -502,6 +502,35 @@ SNS_DEF_MSG_VAR( sns_msg_vector, x );
  */
 SNS_DEC_MSG_PLUGINS( sns_msg_vector );
 
+/***********/
+/* Gripper */
+/***********/
+struct sns_msg_gripper{
+    /**
+     * Message header
+     */
+    struct sns_msg_header header;
+
+    /**
+     * gripper value elements
+     */
+     double speed;
+     double force;
+     double distance;
+     /**
+     * Log message text.
+     */
+    char text[1];
+};
+
+/**
+ * Declare message functions.
+ */
+SNS_DEF_MSG_VAR( sns_msg_gripper, text );
+/**
+ * Declare message plugin functions.
+ */
+SNS_DEC_MSG_PLUGINS( sns_msg_gripper );
 
 /**********/
 /* Matrix */
