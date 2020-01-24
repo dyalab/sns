@@ -143,6 +143,9 @@ bin_PROGRAMS += sns-amino-ctrl
 sns_amino_ctrl_SOURCES = src/sns-amino-ctrl.c
 sns_amino_ctrl_LDADD = libsns.la -lach -lamino
 
+bin_PROGRAMS += msg-simple
+msg_simple_SOURCES = src/msg-simple.c
+msg_simple_LDADD = libsns.la -lach -lamino
 
 noinst_PROGRAMS += demo/motor-ref
 demo_motor_ref_SOURCES = demo/motor-ref.c

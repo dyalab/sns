@@ -101,3 +101,5 @@ Makefile.in
 /demo/multi-state-recv
 *~
 sns-amino-ctrl
+msg-simple
+*.tmp

@@ -93,8 +93,8 @@ int main(int argc, char **argv){
   while( (c = getopt( argc, argv, "u:y:e:h?f:p:" SNS_OPTSTRING)) != -1 ) {
     switch(c) {
       SNS_OPTCASES_VERSION("sns-amino-controller",
-			   "Copyright (c) 2018, Colorado School of Mines\n",
-			   "Matthew A. Schack")
+                           "Copyright (c) 2018, Colorado School of Mines\n",
+                           "Matthew A. Schack")
     case 'f':
       opt_frequency = atoi(optarg);
       break;
@@ -113,16 +113,16 @@ int main(int argc, char **argv){
     case '?':   /* help     */
     case 'h':
       puts( "Usage: sns-amino-ctrl -u <from-arm> -y <to-arm>\n"
-	    "Teleop a robot.\n"
-	    "\n"
-	    "Options:\n"
-	    "  -y <channel>,             current state of the arm (state)\n"
-	    "  -u <channel>,             Motor velocities to move (ref)\n"
-	    "  -p <channel>,             input points to move to\n"
-	    "  -e <frame>,               end-effector frame\n"
-	    "  -V,                       Print program version\n"
-	    "  -?,                       display this help and exit\n"
-	    "Report bugs to " PACKAGE_BUGREPORT );
+            "Teleop a robot.\n"
+            "\n"
+            "Options:\n"
+            "  -y <channel>,             current state of the arm (state)\n"
+            "  -u <channel>,             Motor velocities to move (ref)\n"
+            "  -p <channel>,             input points to move to\n"
+            "  -e <frame>,               end-effector frame\n"
+            "  -V,                       Print program version\n"
+            "  -?,                       display this help and exit\n"
+            "Report bugs to " PACKAGE_BUGREPORT );
       exit(EXIT_SUCCESS);
     default:
       SNS_DIE("Unknown Option: `%c'\n", c);
@@ -148,8 +148,8 @@ int main(int argc, char **argv){
 
   /* Output channel to arm */
   sns_motor_ref_init(cx.scenegraph,
-		     cx.arm_out, &cx.ref_set,
-		     0, NULL );
+                     cx.arm_out, &cx.ref_set,
+                     0, NULL );
 
   SNS_LOG(LOG_DEBUG,"Ref set size: %lu\n",cx.ref_set->n_q);
 
@@ -159,8 +159,8 @@ int main(int argc, char **argv){
   size_t handler_count = n_state + 1;
   cx.handlers = AA_NEW_AR(struct sns_evhandler, handler_count);
   sns_motor_state_init(cx.scenegraph,
-		       cx.arm_in, &cx.state_set,
-		       n_state,cx.handlers);
+                       cx.arm_in, &cx.state_set,
+                       n_state,cx.handlers);
 
 
   /* Input channel from point generator */
@@ -242,9 +242,9 @@ int main(int argc, char **argv){
 
   /* Loop through points and send the interpolation */
   enum ach_status r = sns_evhandle(cx.handlers,handler_count,
-				   &sleep_dur, send_interp, &cx,
-				   sns_sig_term_default,
-				   ACH_EV_O_PERIODIC_TIMEOUT);
+                                   &sleep_dur, send_interp, &cx,
+                                   sns_sig_term_default,
+                                   ACH_EV_O_PERIODIC_TIMEOUT);
 
   halt(&cx);
   SNS_REQUIRE( sns_cx.shutdown || (ACH_OK == r),
@@ -301,7 +301,7 @@ enum ach_status send_interp(void *cx_){
     cx->ref_set->u[i] = new_vel;
 
     SNS_LOG(LOG_DEBUG, "%lu reference q: %f. Actual q: %f. dq: %f\n", i, ref_q,
-	    state_q, new_vel);
+            state_q, new_vel);
   }
 
 
