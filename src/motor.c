@@ -305,7 +305,7 @@ sns_motor_ref_fill ( const struct sns_msg_motor_ref *msg,
     }
 }
 
-static void fill_state( size_t n_q, const struct sns_motor_map *map,
+AA_API void fill_state( size_t n_q, const struct sns_motor_map *map,
                         const double *msg, size_t inc_msg, double *state )
 {
     if( msg && state ) {

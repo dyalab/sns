@@ -99,3 +99,7 @@ Makefile.in
 /demo/.libs/
 /demo/multi-ref-send
 /demo/multi-state-recv
+*~
+sns-amino-ctrl
+msg-simple
+*.tmp

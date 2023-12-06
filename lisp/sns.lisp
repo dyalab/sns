@@ -245,3 +245,16 @@
                                               (aref elt (1+ i))))
                              (format nil "~A/~D.dat" output-directory i)
                              :if-exists if-exists))))
+
+(defun send-list (chan data)
+  (let* ((len (length data))
+	 (msg (sns-msg-vector-heap-alloc len))
+	 (ptr (foreign-slot-pointer msg '(:struct sns-msg-vector) 'x))
+	 (i 0))
+
+    (loop for el in data
+       do (setf (mem-aref ptr
+			  :double i)  (coerce el 'double-float))
+       do (incf i 1))
+    (ach::check-status (sns-msg-vector-put (ach::ach-handle-pointer chan) msg)
+		       "Failed to put message on channel")))

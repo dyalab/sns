@@ -495,3 +495,61 @@ void sns_msg_joystick_plot_sample(
     if( sample_size )
         *sample_size = msg->header.n;
 }
+
+
+/*---- text ----*/
+
+void sns_msg_text_dump (FILE *out, const struct sns_msg_text *msg ) {
+  dump_header( out, &msg->header, "text");
+  fprintf(out, "%s\n", msg->text);
+  fflush(out);
+}
+
+void sns_msg_text_plot_sample(
+ const struct sns_msg_text *msg, double **sample_ptr, char ***sample_labels, size_t *sample_size ){
+   if( sample_size )
+        *sample_size = msg->header.n;
+  return;
+};	     /* If you are trying to plot a text message you are making a mistake */
+
+/*---- sg_update ----*/
+
+const char *
+sns_sg_update_str( enum sns_sg_update mode )
+{
+    switch( mode ) {
+    case SNS_REPARENT_FRAME:
+        return "reparent";
+        break;
+    case SNS_ADD_FRAME:
+        return "addition";
+        break;
+    case SNS_REMOVE_FRAME:
+        return "removal";
+        break;
+    }
+    return "?";
+};
+
+void sns_msg_sg_update_dump (FILE *out, const struct sns_msg_sg_update *msg ) {
+  dump_header( out, &msg->header, "sg_update");
+  fprintf(out, "type: %s\n", sns_sg_update_str(msg->type));
+
+  if(msg->frame) fprintf(out, "frame: %ld\n", msg->frame);
+  if(msg->parent) fprintf(out, "parent: %ld\n", msg->parent);
+  if(msg->q) fprintf(out, "q:\t%2.2f\t%2.2f\t%2.2f\t%2.2f\n",
+                     msg->q[0], msg->q[1], msg->q[2], msg->q[3]);
+  if(msg->v) fprintf(out, "v:\t%2.2f\t%2.2f\t%2.2f\n",
+                     msg->v[0], msg->v[1], msg->v[2]);
+  if(msg->copy_frame) fprintf(out, "copy frame: %ld\n", msg->copy_frame);
+  if(msg->name)  fprintf(out, "%s\n", msg->name);
+}
+
+void sns_msg_sg_update_plot_sample(
+    const struct sns_msg_sg_update *msg, double **sample_ptr,
+    char ***sample_labels, size_t *sample_size )
+{
+    if( sample_size )
+        *sample_size = msg->header.n;
+    return;
+};

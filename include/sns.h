@@ -82,5 +82,6 @@ typedef double sns_real_t;
 #include "sns/daemon.h"
 #include "sns/path.h"
 #include "sns/sdh_tactile.h"
+#include "sns/scenegraph.h"
 
 #endif //SNS_H

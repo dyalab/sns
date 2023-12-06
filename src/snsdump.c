@@ -53,6 +53,11 @@
 #include "sns.h"
 #include "sns/event.h"
 
+struct cx {
+    sns_msg_dump_fun* fun;
+    enum ach_status ret_code;
+};
+
 static enum ach_status
 handler ( void *context, void *msg, size_t msg_size );
 
@@ -72,10 +77,12 @@ static void posarg( char *arg, int i ) {
 }
 
 int main( int argc, char **argv ) {
+    struct cx cx ={0};
+    enum ach_status opt_ret_code = ACH_OK;
 
     /*-- Parse Args -- */
     int i = 0;
-    for( int c; -1 != (c = getopt(argc, argv, "?hHf:" SNS_OPTSTRING)); ) {
+    for( int c; -1 != (c = getopt(argc, argv, "?hHf:s" SNS_OPTSTRING)); ) {
         switch(c) {
             SNS_OPTCASES_VERSION("snsdump",
                                  "Copyright (c) 2013, Georgia Tech Research Corporation\n",
@@ -102,6 +109,9 @@ int main( int argc, char **argv ) {
                 );
             exit(EXIT_SUCCESS);
             break;
+	case 's':
+	    opt_ret_code = ACH_CANCELED;
+	    break;
         default:
             posarg( optarg, i++ );
         }
@@ -122,8 +132,11 @@ int main( int argc, char **argv ) {
     SNS_LOG( LOG_INFO, "verbosity: %d\n", sns_cx.verbosity );
 
     /*-- Obtain Dump Function -- */
+
     sns_msg_dump_fun* fun =  (sns_msg_dump_fun*) sns_msg_plugin_symbol( opt_type, "sns_msg_dump" );
     SNS_REQUIRE( fun, "Couldn't link dump function symbol'\n");
+    cx.fun = fun;
+    cx.ret_code = opt_ret_code;
 
     /*-- Open channel -- */
     ach_channel_t chan;
@@ -132,7 +145,7 @@ int main( int argc, char **argv ) {
     /* setup handler */
     struct sns_evhandler handlers[1] = {
         {.channel = &chan,
-         .context = fun,
+         .context = &cx,
          .ach_options = ACH_O_FIRST,
          .handler = handler
         }
@@ -148,10 +161,12 @@ int main( int argc, char **argv ) {
 }
 
 static enum ach_status
-handler ( void *context, void *msg, size_t msg_size )
+handler ( void *cx_, void *msg, size_t msg_size )
 {
+    struct cx *cx = (struct cx*)cx_;
     (void)msg_size;
-    sns_msg_dump_fun* fun  = (sns_msg_dump_fun*) context;
+    sns_msg_dump_fun* fun  = cx->fun;
     (fun)(stdout, msg);
-    return ACH_OK;
+    if (cx->ret_code == ACH_CANCELED) sns_cx.shutdown=1;
+    return cx->ret_code;
 }

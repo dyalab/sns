@@ -7,23 +7,45 @@ noinst_PROGRAMS =
 bin_SCRIPTS =
 
 include_HEADERS = include/sns.h
+
 pkginclude_HEADERS =                              \
 	include/sns/msg.h                         \
 	include/sns/util.h                        \
 	include/sns/daemon.h			   \
 	include/sns/event.h			   \
 	include/sns/path.h                         \
-        include/sns/sdh_tactile.h
+        include/sns/sdh_tactile.h                  \
+	include/sns/motor.h			   \
+	include/sns/scenegraph.h
+
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = share/sns.pc
 
 
 init_ddir = $(sysconfdir)/init.d
 init_d_SCRIPTS = scripts/sns
 
 lib_LTLIBRARIES = libsns.la
-libsns_la_SOURCES = src/msg.c src/daemon.c src/util.c src/msg/path.c src/event.c src/motor.c
+libsns_la_SOURCES = src/msg.c        \
+		    src/daemon.c     \
+		    src/util.c       \
+		    src/msg/path.c   \
+		    src/event.c      \
+		    src/motor.c      \
+		    src/sg-updates.c
 libsns_la_LIBADD = -lach -lamino -lach-experimental
 
 ## PLUGINS
+lib_LTLIBRARIES += libsns_msg_sg_update.la
+libsns_msg_sg_update_la_SOURCES = src/msg_plugin.c
+libsns_msg_sg_update_la_CFLAGS = $(CFLAGS) -DSNS_MSG_PLUGIN_TYPE=sns_msg_sg_update
+libsns_msg_sg_update_la_LIBADD = libsns.la
+
+lib_LTLIBRARIES += libsns_msg_text.la
+libsns_msg_text_la_SOURCES = src/msg_plugin.c
+libsns_msg_text_la_CFLAGS = $(CFLAGS) -DSNS_MSG_PLUGIN_TYPE=sns_msg_text
+libsns_msg_text_la_LIBADD = libsns.la
+
 lib_LTLIBRARIES += libsns_msg_joystick.la
 libsns_msg_joystick_la_SOURCES = src/msg_plugin.c
 libsns_msg_joystick_la_CFLAGS = $(CFLAGS) -DSNS_MSG_PLUGIN_TYPE=sns_msg_joystick
@@ -63,7 +85,6 @@ lib_LTLIBRARIES += libsns_msg_tf_dx.la
 libsns_msg_tf_dx_la_SOURCES = src/msg_plugin.c
 libsns_msg_tf_dx_la_CFLAGS = $(CFLAGS) -DSNS_MSG_PLUGIN_TYPE=sns_msg_tf_dx
 libsns_msg_tf_dx_la_LIBADD = libsns.la
-
 
 lib_LTLIBRARIES += libsns_msg_sdh_tactile.la
 libsns_msg_sdh_tactile_la_SOURCES = src/msg_plugin.c
@@ -114,7 +135,6 @@ bin_PROGRAMS += sns-teleopd
 sns_teleopd_SOURCES = src/bin/sns-teleopd.c
 sns_teleopd_LDADD = libsns.la -lach-experimental -lach -lamino
 
-
 bin_PROGRAMS += sns-joyd
 sns_joyd_SOURCES = src/driver/joystick/joyd.c src/driver/joystick/js.c
 sns_joyd_LDADD = libsns.la -lach -lamino
@@ -123,6 +143,9 @@ bin_PROGRAMS += sns-amino-ctrl
 sns_amino_ctrl_SOURCES = src/sns-amino-ctrl.c
 sns_amino_ctrl_LDADD = libsns.la -lach -lamino
 
+bin_PROGRAMS += msg-simple
+msg_simple_SOURCES = src/msg-simple.c
+msg_simple_LDADD = libsns.la -lach -lamino
 
 noinst_PROGRAMS += demo/motor-ref
 demo_motor_ref_SOURCES = demo/motor-ref.c

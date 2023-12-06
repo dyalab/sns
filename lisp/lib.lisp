@@ -1,11 +1,9 @@
-;;;; -*- mode: lisp -*-
+;;;; -*- Lisp -*-
 ;;;;
-;;;; Copyright (c) 2014, Georgia Tech Research Corporation
+;;;; Copyright (c) 2019, Colorado School of Mines
 ;;;; All rights reserved.
 ;;;;
-;;;; Author(s): Neil T. Dantam <ntd@gatech.edu>
-;;;; Georgia Tech Humanoid Robotics Lab
-;;;; Under Direction of Prof. Mike Stilman <mstilman@cc.gatech.edu>
+;;;; Author(s): Matthew A. Schack <mschack@mines.edu>
 ;;;;
 ;;;;
 ;;;; This file is provided under the following "BSD-style" License:
@@ -37,19 +35,26 @@
 ;;;;   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ;;;;   POSSIBILITY OF SUCH DAMAGE.
 
-(cl:eval-when (:load-toplevel :execute)
-    (asdf:operate 'asdf:load-op 'cffi-grovel))
+(in-package :sns)
 
-(asdf:defsystem sns
-  ;; The version should get updated from the Makefile via sed
-  :description "SNS Messageing"
-  :depends-on ("cffi" "ach" "amino")
-  :components ((:file "package")
-               (cffi-grovel:grovel-file "grovel" :depends-on ("package"))
-               (:file "lib" :depends-on ("grovel"))
-               (cffi-grovel:wrapper-file "wrappers" :depends-on ("lib"))
-               (:file "structs" :depends-on ("wrappers"))
-               (:file "sns-msg-text" :depends-on ("wrappers"))
-               (:file "sns-msg-sg-update" :depends-on ("wrappers"))
+(define-foreign-library libach
+  (t (:default "libach")))
+(use-foreign-library libach)
 
-               (:file "sns" :depends-on ("structs"))))
+(define-foreign-library libsns
+  (t (:default "libsns")))
+(use-foreign-library libsns)
+
+(defcfun "sns_init" :void)
+(defcfun "sns_end" :void)
+
+(defcfun "fill_state" :void
+  (n size-t)
+  (map :pointer)
+  (msg :pointer)
+  (inc-msg size-t)
+  (state :pointer))
+
+(defcfun "sns_msg_dump" :void
+  (file :pointer)
+  (msg :pointer))
