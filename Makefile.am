@@ -137,10 +137,28 @@ demo_multi_state_recv_LDADD = libsns.la -lach -lamino
 
 bin_SCRIPTS += scripts/sns-joyd-logitech-f310 scripts/sns-joyd-logitech-dual-action
 
+EXTRA_DIST +=                        \
+	doc/md/acknowledgments.md.header \
+	doc/md/command.md				 \
+	doc/md/concepts.md               \
+	doc/md/copying.md.header         \
+	doc/md/daemon.md                 \
+	doc/md/download.md               \
+	doc/md/driver.md                 \
+	doc/md/mainpage.md               \
+	doc/md/tutorial-programming.md   \
+	doc/md/tutorial.md
+
 
 install-exec-hook:
 	ln -sf $(DESTDIR)$(init_ddir)/sns$(EXEEXT) \
 	       $(DESTDIR)$(bindir)/sns$(EXEEXT)
+
+distclean-local:
+	-rm -rf doc/manual                  \
+		doc/md/acknowledgments.md   \
+                doc/md/copying.md
+
 
 
 
@@ -159,9 +177,6 @@ doc/md/acknowledgments.md: $(top_srcdir)/AUTHORS $(top_srcdir)/doc/md/acknowledg
 
 
 if HAVE_DOXYGEN
-
-
-
 doxygen: Doxyfile doc/md/copying.md doc/md/acknowledgments.md
 	$(DOXYGEN)
 
@@ -183,7 +198,7 @@ dist_man_MANS =
 dist_man_MANS += doc/sns.1
 doc/sns.1: scripts/sns $(top_srcdir)/configure.ac
 	$(MKDIR_P) doc
-	$(HELP2MAN) --version-option=--version-man --no-info -n "SNS Management Script" $(top_srcdir)/scripts/sns -o $@
+	$(HELP2MAN) --version-option=--version-man --no-info -n "SNS Management Script" $(top_builddir)/scripts/sns -o $@
 
 dist_man_MANS += doc/snsref.1
 doc/snsref.1: $(top_builddir)/snsref $(top_srcdir)/configure.ac
@@ -220,7 +235,7 @@ doc/sns-teleopd.1: $(top_builddir)/sns-teleopd $(top_srcdir)/configure.ac
 html_mans =
 html_imgs =
 
-ROFFIT_PROC=roffit --bare < $< | sed -e 's/This HTML.*//' > $@
+ROFFIT_PROC=echo "Making the thing! $(html_mans)"; roffit --bare < $< | sed -e 's/This HTML.*//' > $@
 
 html_mans += doc/sns.html
 doc/sns.html: doc/sns.1
@@ -292,7 +307,7 @@ doc/manual/img/priority.png: doc/tex/priority.tex doc/tex/sns.sty
 	gs -q -dNOPAUSE -dBATCH -sDEVICE=pngalpha -r300 -dEPSCrop -sOutputFile=$@ priority-crop.pdf
 
 
-EXTRA_DIST += $(html_mans) $(html_imgs)
+EXTRA_DIST += $(html_mans) $(html_imgs) doc/tex
 doxygen: $(html_mans) $(html_imgs) doc/daemon.md doc/command.md doc/driver.md doc/tutorial-programming.md
 
 
@@ -300,4 +315,4 @@ endif
 
 
 
-EXTRA_DIST += doc/manual
+EXTRA_DIST += doc/manual 

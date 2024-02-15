@@ -139,7 +139,7 @@ PKG_CHECK_MODULES([SDL2],
 AC_SUBST([SDL2_CFLAGS])
 AC_SUBST([SDL2_LIBS])
 
-AC_CONFIG_FILES([Makefile share/sns.pc])
+AC_CONFIG_FILES([Makefile share/sns.pc Doxyfile])
 
 
 CXXFLAGS="$CFLAGS"

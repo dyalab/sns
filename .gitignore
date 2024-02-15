@@ -101,3 +101,4 @@ Makefile.in
 /demo/multi-state-recv
 sns.pc
 *~
+Doxyfile
