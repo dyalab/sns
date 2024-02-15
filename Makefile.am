@@ -7,13 +7,16 @@ noinst_PROGRAMS =
 bin_SCRIPTS =
 
 include_HEADERS = include/sns.h
-pkginclude_HEADERS =        \
-	include/sns/msg.h         \
-	include/sns/util.h        \
-	include/sns/daemon.h			\
-	include/sns/event.h			  \
-	include/sns/path.h        \
-	include/sns/sdh_tactile.h
+pkginclude_HEADERS =                   \
+	include/sns/daemon.h	       \
+	include/sns/event.h	       \
+	include/sns/joystick/gamepad.h \
+	include/sns/joystick/js.h      \
+	include/sns/motor.h            \
+	include/sns/msg.h              \
+	include/sns/path.h             \
+	include/sns/sdh_tactile.h      \
+	include/sns/util.h        
 
 
 init_ddir = $(sysconfdir)/init.d

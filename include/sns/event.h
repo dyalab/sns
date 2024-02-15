@@ -41,6 +41,10 @@
  * @author Neil T. Dantam
  */
 
+#include <ach.h>
+#include <ach/generic.h>
+#include <time.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -41,6 +41,8 @@
 #ifndef SNS_UTIL_H
 #define SNS_UTIL_H
 
+#include <time.h>
+
 /**
  * @file  event.h
  * @brief Utility functions for SNS daemons
@@ -52,18 +54,38 @@
 extern "C" {
 #endif
 
+/**
+ * Max length for hostnames in SNS messages
+ */
+#define SNS_HOSTNAME_LEN 8
+
+/**
+ * Max length for daemon identifier in SNS messages
+ */
+#define SNS_IDENT_LEN 8
+
+/**
+ * Max length for daemon backtraces
+ */
+#define SNS_BACKTRACE_LEN 32
+
+/**
+ * Type to use for floating point values.
+ */
+typedef double sns_real_t;
+
 int
 sns_beep(int fd, double freq, double dur);
 
 #define SNS_BEEP_NOTE_A3  220
 #define SNS_BEEP_NOTE_A4  440
 #define SNS_BEEP_NOTE_A4S 466.16
-#define SNS_BEEP_NOTE_B4  493.88
-#define SNS_BEEP_NOTE_C5  523.25
-#define SNS_BEEP_NOTE_C5S 554.37
 #define SNS_BEEP_NOTE_A5  880
 #define SNS_BEEP_NOTE_A6  1760
 #define SNS_BEEP_NOTE_A7  3520
+#define SNS_BEEP_NOTE_B4  493.88
+#define SNS_BEEP_NOTE_C5  523.25
+#define SNS_BEEP_NOTE_C5S 554.37
 
 static inline struct timespec
 sns_time_add_ns(struct timespec ts, int64_t ns)

@@ -53,6 +53,10 @@
  * @author Neil T. Dantam
  */
 
+#include <ach.h>
+#include <amino/rx/rxtype.h>
+#include <sns/util.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
