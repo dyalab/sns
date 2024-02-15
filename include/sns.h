@@ -48,40 +48,21 @@
  * @author Neil T. Dantam
  */
 
-/**
- * Max length for hostnames in SNS messages
- */
-#define SNS_HOSTNAME_LEN 8
-
-/**
- * Max length for daemon identifier in SNS messages
- */
-#define SNS_IDENT_LEN 8
-
-/**
- * Max length for daemon backtraces
- */
-#define SNS_BACKTRACE_LEN 32
-
-/**
- * Type to use for floating point values.
- */
-typedef double sns_real_t;
-
+#include <fcntl.h>
 #include <stdint.h>
 #include <time.h>
-#include <pthread.h>
-#include <fcntl.h>
-#include <signal.h>
+// The above files need to come before ach
 #include <ach.h>
-#include <amino-1.0/amino.h>
+#include <amino.h>
+#include <pthread.h>
+#include <signal.h>
 #include <syslog.h>
 #include <time.h>
 
-#include "sns/util.h"
-#include "sns/msg.h"
 #include "sns/daemon.h"
+#include "sns/msg.h"
 #include "sns/path.h"
 #include "sns/sdh_tactile.h"
+#include "sns/util.h"
 
-#endif //SNS_H
+#endif  // SNS_H
