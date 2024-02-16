@@ -19,6 +19,9 @@ pkginclude_HEADERS =                   \
 	include/sns/util.h        
 
 
+## sns-deamon runner ##
+EXTRA_DIST += scripts/sns
+
 init_ddir = $(sysconfdir)/init.d
 init_d_SCRIPTS = scripts/sns
 
@@ -138,6 +141,11 @@ noinst_PROGRAMS += demo/multi-state-recv
 demo_multi_state_recv_SOURCES = demo/multi-state-recv.c
 demo_multi_state_recv_LDADD = libsns.la -lach -lamino
 
+## Joystick Helper Scripts ##
+EXTRA_DIST += \
+	scripts/sns-joyd-logitech-dual-action \
+	scripts/sns-joyd-logitech-f310
+
 bin_SCRIPTS += scripts/sns-joyd-logitech-f310 scripts/sns-joyd-logitech-dual-action
 
 EXTRA_DIST +=                            \
@@ -201,7 +209,7 @@ dist_man_MANS =
 dist_man_MANS += doc/sns.1
 doc/sns.1: scripts/sns $(top_srcdir)/configure.ac
 	$(MKDIR_P) doc
-	$(HELP2MAN) --version-option=--version-man --no-info -n "SNS Management Script" $(top_builddir)/scripts/sns -o $@
+	$(HELP2MAN) --version-option=--version-man --no-info -n "SNS Management Script" $(top_srcdir)/scripts/sns -o $@
 
 dist_man_MANS += doc/snsref.1
 doc/snsref.1: $(top_builddir)/snsref $(top_srcdir)/configure.ac
@@ -238,7 +246,7 @@ doc/sns-teleopd.1: $(top_builddir)/sns-teleopd $(top_srcdir)/configure.ac
 html_mans =
 html_imgs =
 
-ROFFIT_PROC=echo "Making the thing! $(html_mans)"; roffit --bare < $< | sed -e 's/This HTML.*//' > $@
+ROFFIT_PROC=roffit --bare < $< | sed -e 's/This HTML.*//' > $@
 
 html_mans += doc/sns.html
 doc/sns.html: doc/sns.1
@@ -318,4 +326,4 @@ endif
 
 
 
-EXTRA_DIST += doc/manual 
+EXTRA_DIST += doc/manual
