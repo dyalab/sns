@@ -19,6 +19,9 @@ pkginclude_HEADERS =               \
 	include/sns/util.h        
 
 
+## sns-deamon runner ##
+EXTRA_DIST += scripts/sns
+
 init_ddir = $(sysconfdir)/init.d
 init_d_SCRIPTS = scripts/sns
 
@@ -137,6 +140,11 @@ demo_multi_ref_send_LDADD = libsns.la -lach -lamino
 noinst_PROGRAMS += demo/multi-state-recv
 demo_multi_state_recv_SOURCES = demo/multi-state-recv.c
 demo_multi_state_recv_LDADD = libsns.la -lach -lamino
+
+## Joystick Helper Scripts ##
+EXTRA_DIST += \
+	scripts/sns-joyd-logitech-dual-action \
+	scripts/sns-joyd-logitech-f310
 
 bin_SCRIPTS += scripts/sns-joyd-logitech-f310 scripts/sns-joyd-logitech-dual-action
 
