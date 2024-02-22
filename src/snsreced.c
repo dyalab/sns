@@ -44,16 +44,16 @@
 
 #include "config.h"
 
-#include <inttypes.h>
 #include <getopt.h>
+#include <inttypes.h>
 #include <unistd.h>
 #include "sns.h"
 
 static const char *opt_file = NULL;
 
-
-static void posarg( char *arg, int i ) {
-    if( 0 == i ) {
+static void posarg(char *arg, int i)
+{
+    if (0 == i) {
         opt_file = strdup(arg);
     } else {
         fprintf(stderr, "Invalid arg: %s\n", arg);
@@ -61,90 +61,93 @@ static void posarg( char *arg, int i ) {
     }
 }
 
-int main( int argc, char **argv ) {
-
+int main(int argc, char **argv)
+{
     /*-- Parse Options --*/
     {
         int i = 0;
-        for( int c; -1 != (c = getopt(argc, argv, "V?")); ) {
-            switch(c) {
+        for (int c; -1 != (c = getopt(argc, argv, "V?"));) {
+            switch (c) {
                 SNS_OPTCASES
-            case 'V':   /* version     */
-                puts( "snsrec " PACKAGE_VERSION "\n"
-                      "\n"
-                      "Copyright (c) 2013, Georgia Tech Research Corporation\n"
-                      "This is free software; see the source for copying conditions.  There is NO\n"
-                      "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
-                      "\n"
-                      "Written by Neil T. Dantam"
-                    );
-                exit(EXIT_SUCCESS);
-            case '?':   /* help     */
-                puts( "Usage: snsreced [OPTIONS...] file\n"
-                      "Manipulate recorded SNS messages\n"
-                      "\n"
-                      "Options:\n"
-                      "  -?,                          Give program help list\n"
-                      "  -V,                          Print program version\n"
-                      "\n"
-                      "Report bugs to <ntd@gatech.edu>"
-                    );
-                exit(EXIT_SUCCESS);
-                break;
-            default:
-                posarg( optarg, i++ );
+                case 'V': /* version     */
+                    // clang-format off
+                    puts("snsrec " PACKAGE_VERSION
+                         "\n"
+                         "\n"
+                         "Copyright (c) 2013, Georgia Tech Research Corporation\n"
+                         "This is free software; see the source for copying conditions.  There is NO\n"
+                         "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
+                         "\n"
+                         "Written by Neil T. Dantam");
+                    // clang-format on
+                    exit(EXIT_SUCCESS);
+                case '?': /* help     */
+                    // clang-format off
+                    puts(
+                        "Usage: snsreced [OPTIONS...] file\n"
+                        "Manipulate recorded SNS messages\n"
+                        "\n"
+                        "Options:\n"
+                        "  -?,                          Give program help list\n"
+                        "  -V,                          Print program version\n"
+                        "\n"
+                        "Report bugs to <ntd@gatech.edu>");
+                    // clang-format on
+                    exit(EXIT_SUCCESS);
+                    break;
+                default:
+                    posarg(optarg, i++);
             }
         }
-        while( optind < argc ) {
+        while (optind < argc) {
             posarg(argv[optind++], i++);
         }
     }
 
-
-    FILE *fin = fopen(opt_file,"r");
+    FILE *fin = fopen(opt_file, "r");
     FILE **fout;
     struct aa_mem_region *reg = aa_mem_region_local_get();
-    int first = 1;
     size_t n_real;
-    size_t lineno = 1;
     double t0;
+    int first     = 1;
+    size_t lineno = 1;
 
-    while( !feof(fin) ) {
+    while (!feof(fin)) {
         // read line
-        char *line = aa_io_getline(fin,reg);
-        if( NULL == line ) continue;
+        char *line = aa_io_getline(fin, reg);
+        if (NULL == line) continue;
 
         char *line2 = aa_io_skipblank(line);
-        if('\0' == *line2 || AA_IO_ISCOMMENT(*line2)) continue;
+        if ('\0' == *line2 || AA_IO_ISCOMMENT(*line2)) continue;
 
         double *X;
-        size_t n = aa_io_d_parse(line2, reg, &X, NULL );
-        if( first ) {
-            if( n <= 1 ) {
-                fprintf(stderr,"Too few elements\n");
+        size_t n = aa_io_d_parse(line2, reg, &X, NULL);
+        if (first) {
+            if (n <= 1) {
+                fprintf(stderr, "Too few elements\n");
                 exit(EXIT_FAILURE);
             }
-            first = 0;
+            first  = 0;
             n_real = n;
-            fout = (FILE**)malloc((n-1)*sizeof(FILE*));
-            for( size_t i = 0; i < n-1; i ++ ) {
-                char *name = aa_mem_region_printf( reg, "%lu.dat", i );
-                fout[i] = fopen(name,"w");
+            fout   = (FILE **)malloc((n - 1) * sizeof(FILE *));
+            for (size_t i = 0; i < n - 1; i++) {
+                char *name = aa_mem_region_printf(reg, "%lu.dat", i);
+                fout[i]    = fopen(name, "w");
             }
             t0 = X[0];
-        } else if( n != n_real ) {
-            fprintf(stderr,"Error on line %lu: n=%lu, expected %lu\n", lineno, n, n_real);
+        } else if (n != n_real) {
+            fprintf(stderr, "Error on line %lu: n=%lu, expected %lu\n", lineno,
+                    n, n_real);
             exit(EXIT_FAILURE);
         }
 
         // write line
-        for( size_t i = 0; i < n-1; i ++ ) {
-            fprintf(fout[i],"%f %f\n",X[0]-t0, X[i+1]);
+        for (size_t i = 0; i < n - 1; i++) {
+            fprintf(fout[i], "%f %f\n", X[0] - t0, X[i + 1]);
         }
         aa_mem_region_release(reg);
         lineno++;
     }
-
 
     return 0;
 }

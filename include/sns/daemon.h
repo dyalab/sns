@@ -72,6 +72,7 @@ extern "C" {
  */
 #define SNS_DEFAULT_CORE_SIZE (100 * (1 << 20))
 
+// clang-format off
 /**
  * Context struct for an SNS daemon.
  *
@@ -85,12 +86,11 @@ typedef struct sns_cx {
     char host[SNS_HOSTNAME_LEN];     ///< hostname for this daemon
     struct timespec time_monotonic;  ///< monotonic time
     struct timespec time_real;       ///< real time
-    volatile sig_atomic_t
-        shutdown;   ///< set to true when system should shutdown
-    int verbosity;  ///< how much output to give.  Add SNS_LOG_LEVEL to get
-                    ///< priority
-    FILE *stderr;   ///< file handler for printing log/error messages
+    volatile sig_atomic_t shutdown;  ///< set to true when system should shutdown
+    int verbosity;                   ///< how much output to give.  Add SNS_LOG_LEVEL to get priority
+    FILE *stderr;                    ///< file handler for printing log/error messages
 } sns_cx_t;
+// clang-format on
 
 /**
  * The global SNS daemon context

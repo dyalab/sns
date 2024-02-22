@@ -40,30 +40,26 @@
  *
  */
 
-
-
-
 #include "config.h"
 
-
+#include <dlfcn.h>
 #include <getopt.h>
 #include <syslog.h>
-#include <dlfcn.h>
 #include <unistd.h>
 #include "sns.h"
 #include "sns/event.h"
 
-static enum ach_status
-handler ( void *context, void *msg, size_t msg_size );
+static enum ach_status handler(void *context, void *msg, size_t msg_size);
 
 char *opt_channel = NULL;
-char *opt_type = NULL;
-double opt_freq = 0;
+char *opt_type    = NULL;
+double opt_freq   = 0;
 
-static void posarg( char *arg, int i ) {
-    if( 0 == i ) {
+static void posarg(char *arg, int i)
+{
+    if (0 == i) {
         opt_channel = strdup(arg);
-    } else if ( 1 == i ) {
+    } else if (1 == i) {
         opt_type = strdup(arg);
     } else {
         fprintf(stderr, "Invalid arg: %s\n", arg);
@@ -71,87 +67,88 @@ static void posarg( char *arg, int i ) {
     }
 }
 
-int main( int argc, char **argv ) {
-
+int main(int argc, char **argv)
+{
     /*-- Parse Args -- */
     int i = 0;
-    for( int c; -1 != (c = getopt(argc, argv, "?hHf:" SNS_OPTSTRING)); ) {
-        switch(c) {
-            SNS_OPTCASES_VERSION("snsdump",
-                                 "Copyright (c) 2013, Georgia Tech Research Corporation\n",
-                                 "Neil T. Dantam")
-        case 'f':
-            opt_freq = atof(optarg);
-            break;
-        case '?':   /* help     */
-        case 'h':
-        case 'H':
-            puts( "Usage: snsdump [OPTIONS] channel message-type\n"
-                  "Print SNS messages\n"
-                  "\n"
-                  "Options:\n"
-                  "  -v,                          Make output more verbose\n"
-                  "  -f FREQUENCY,                Sample at frequency\n"
-                  "  -?,                          Give program help list\n"
-                  "  -V,                          Print program version\n"
-                  "\n"
-                  "Examples:\n"
-                  "  snsdump js_chan joystick     Dump 'joystick' messages from the 'js_chan' channel"
-                  "\n"
-                  "Report bugs to <ntd@gatech.edu>"
-                );
-            exit(EXIT_SUCCESS);
-            break;
-        default:
-            posarg( optarg, i++ );
+    for (int c; -1 != (c = getopt(argc, argv, "?hHf:" SNS_OPTSTRING));) {
+        switch (c) {
+            SNS_OPTCASES_VERSION(
+                "snsdump",
+                "Copyright (c) 2013, Georgia Tech Research Corporation\n",
+                "Neil T. Dantam")
+            case 'f':
+                opt_freq = atof(optarg);
+                break;
+            case '?': /* help     */
+            case 'h':
+            case 'H':
+                // clang-format off
+                puts(
+                    "Usage: snsdump [OPTIONS] channel message-type\n"
+                    "Print SNS messages\n"
+                    "\n"
+                    "Options:\n"
+                    "  -v,                          Make output more verbose\n"
+                    "  -f FREQUENCY,                Sample at frequency\n"
+                    "  -?,                          Give program help list\n"
+                    "  -V,                          Print program version\n"
+                    "\n"
+                    "Examples:\n"
+                    "  snsdump js_chan joystick     Dump 'joystick' messages from the 'js_chan' channel\n"
+                    "Report bugs to <ntd@gatech.edu>");
+                // clang-format on
+                exit(EXIT_SUCCESS);
+                break;
+            default:
+                posarg(optarg, i++);
         }
     }
 
-    while( optind < argc ) {
+    while (optind < argc) {
         posarg(argv[optind++], i++);
     }
 
     sns_init();
 
-    SNS_REQUIRE( opt_channel, "snsdump: missing channel.\nTry `snsdump -H' for more information\n" );
-    SNS_REQUIRE( opt_type, "snsdump: missing type.\nTry `snsdump -H' for more information\n" );
+    SNS_REQUIRE(
+        opt_channel,
+        "snsdump: missing channel.\nTry `snsdump -H' for more information\n");
+    SNS_REQUIRE(
+        opt_type,
+        "snsdump: missing type.\nTry `snsdump -H' for more information\n");
 
-
-    SNS_LOG( LOG_INFO, "channel: %s\n", opt_channel );
-    SNS_LOG( LOG_INFO, "type: %s\n", opt_type );
-    SNS_LOG( LOG_INFO, "verbosity: %d\n", sns_cx.verbosity );
+    SNS_LOG(LOG_INFO, "channel: %s\n", opt_channel);
+    SNS_LOG(LOG_INFO, "type: %s\n", opt_type);
+    SNS_LOG(LOG_INFO, "verbosity: %d\n", sns_cx.verbosity);
 
     /*-- Obtain Dump Function -- */
-    sns_msg_dump_fun* fun =  (sns_msg_dump_fun*) sns_msg_plugin_symbol( opt_type, "sns_msg_dump" );
-    SNS_REQUIRE( fun, "Couldn't link dump function symbol'\n");
+    sns_msg_dump_fun *fun =
+        (sns_msg_dump_fun *)sns_msg_plugin_symbol(opt_type, "sns_msg_dump");
+    SNS_REQUIRE(fun, "Couldn't link dump function symbol'\n");
 
     /*-- Open channel -- */
     ach_channel_t chan;
-    sns_chan_open( &chan, opt_channel, NULL );
+    sns_chan_open(&chan, opt_channel, NULL);
 
     /* setup handler */
-    struct sns_evhandler handlers[1] = {
-        {.channel = &chan,
-         .context = fun,
-         .ach_options = ACH_O_FIRST,
-         .handler = handler
-        }
-    };
+    struct sns_evhandler handlers[1] = {{.channel     = &chan,
+                                         .context     = fun,
+                                         .ach_options = ACH_O_FIRST,
+                                         .handler     = handler}};
 
     /* run */
     enum ach_status r;
-    r = sns_evhandle( handlers, sizeof( handlers ) / sizeof(handlers[0]),
-                      NULL, NULL, NULL,
-                      sns_sig_term_default, 0 );
+    r = sns_evhandle(handlers, sizeof(handlers) / sizeof(handlers[0]), NULL,
+                     NULL, NULL, sns_sig_term_default, 0);
 
     return r;
 }
 
-static enum ach_status
-handler ( void *context, void *msg, size_t msg_size )
+static enum ach_status handler(void *context, void *msg, size_t msg_size)
 {
     (void)msg_size;
-    sns_msg_dump_fun* fun  = (sns_msg_dump_fun*) context;
+    sns_msg_dump_fun *fun = (sns_msg_dump_fun *)context;
     (fun)(stdout, msg);
     return ACH_OK;
 }

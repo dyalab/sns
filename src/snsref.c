@@ -40,116 +40,132 @@
  *
  */
 
-
-
-
 #include "config.h"
 
-
+#include <dlfcn.h>
 #include <getopt.h>
 #include <syslog.h>
-#include <dlfcn.h>
 #include "sns.h"
 
-
-char *opt_channel = NULL;
+char *opt_channel            = NULL;
 enum sns_motor_mode opt_mode = SNS_MOTOR_MODE_POS;
-sns_real_t *opt_u = NULL;
-uint32_t n_opt_u = 0;
-int opt_degrees = 0;
+sns_real_t *opt_u            = NULL;
+uint32_t n_opt_u             = 0;
+int opt_degrees              = 0;
 
-static void posarg( char *arg, int i ) {
-    if( 0 == i ) {
+static void posarg(char *arg, int i)
+{
+    if (0 == i) {
         opt_channel = strdup(arg);
     } else {
-        opt_u = (sns_real_t*)realloc( opt_u, (1+n_opt_u)*sizeof(opt_u[0]) );
+        opt_u = (sns_real_t *)realloc(opt_u, (1 + n_opt_u) * sizeof(opt_u[0]));
         opt_u[n_opt_u++] = atof(arg);
     }
 }
 
-int main( int argc, char **argv ) {
-
+int main(int argc, char **argv)
+{
     /*-- Parse Args -- */
-    int i = 0;
+    int i              = 0;
     double opt_dur_sec = 1.0;
-    for( int c; -1 != (c = getopt(argc, argv, "?s:pdRHPD" SNS_OPTSTRING )); ) {
-        switch(c) {
-            SNS_OPTCASES_VERSION("snsref",
-                                 "Copyright (c) 2013, Georgia Tech Research Corporation\n"
-                                 "Copyright (c) 2017, Rice University\n",
-                                 "Neil T. Dantam")
-        case 'p': opt_mode = SNS_MOTOR_MODE_POS; break;
-        case 'd': opt_mode = SNS_MOTOR_MODE_VEL; break;
-        case 'R': opt_mode = SNS_MOTOR_MODE_RESET; break;
-        case 'H': opt_mode = SNS_MOTOR_MODE_HALT; break;
-        case 'P': opt_mode = SNS_MOTOR_MODE_POS_OFFSET; break;
-        case 'D': opt_degrees = 1; break;
-        case 's': opt_dur_sec = atof(optarg); break;
-        case '?':
-            puts( "Usage: snsref [OPTIONS] channel x0 x1 ... xn\n"
-                  "Send a motor referece command\n"
-                  "\n"
-                  "Options:\n"
-                  "  -p                           Set positions (default)\n"
-                  "  -d                           Set velocities\n"
-                  "  -H                           Halt\n"
-                  "  -P                           Set position offset\n"
-                  "  -s <seconds>                 Message duration (default: 1)\n"
-                  "  -v,                          Make output more verbose\n"
-                  "  -?,                          Give program help list\n"
-                  "  -V,                          Print program version\n"
-                  "\n"
-                  "Report bugs to <ntd@gatech.edu>"
-                );
-            exit(EXIT_SUCCESS);
-            break;
-        default:
-            posarg( optarg, i++ );
+    for (int c; -1 != (c = getopt(argc, argv, "?s:pdRHPD" SNS_OPTSTRING));) {
+        switch (c) {
+            SNS_OPTCASES_VERSION(
+                "snsref",
+                "Copyright (c) 2013, Georgia Tech Research Corporation\n"
+                "Copyright (c) 2017, Rice University\n",
+                "Neil T. Dantam")
+            case 'p':
+                opt_mode = SNS_MOTOR_MODE_POS;
+                break;
+            case 'd':
+                opt_mode = SNS_MOTOR_MODE_VEL;
+                break;
+            case 'R':
+                opt_mode = SNS_MOTOR_MODE_RESET;
+                break;
+            case 'H':
+                opt_mode = SNS_MOTOR_MODE_HALT;
+                break;
+            case 'P':
+                opt_mode = SNS_MOTOR_MODE_POS_OFFSET;
+                break;
+            case 'D':
+                opt_degrees = 1;
+                break;
+            case 's':
+                opt_dur_sec = atof(optarg);
+                break;
+            case '?':
+                // clang-format off
+                puts(
+                    "Usage: snsref [OPTIONS] channel x0 x1 ... xn\n"
+                    "Send a motor referece command\n"
+                    "\n"
+                    "Options:\n"
+                    "  -p                           Set positions (default)\n"
+                    "  -d                           Set velocities\n"
+                    "  -H                           Halt\n"
+                    "  -P                           Set position offset\n"
+                    "  -s <seconds>                 Message duration (default: 1)\n"
+                    "  -v,                          Make output more verbose\n"
+                    "  -?,                          Give program help list\n"
+                    "  -V,                          Print program version\n"
+                    "\n"
+                    "Report bugs to <ntd@gatech.edu>");
+                // clang-format on
+                exit(EXIT_SUCCESS);
+                break;
+            default:
+                posarg(optarg, i++);
         }
     }
 
-    while( optind < argc ) {
+    while (optind < argc) {
         posarg(argv[optind++], i++);
     }
 
     sns_init();
 
-    SNS_REQUIRE( opt_channel, "snsref: missing channel.\nTry `snsref -?' for more information\n" );
-
+    SNS_REQUIRE(
+        opt_channel,
+        "snsref: missing channel.\nTry `snsref -?' for more information\n");
 
     /*-- Open channel -- */
     ach_channel_t chan;
-    sns_chan_open( &chan, opt_channel, NULL );
+    sns_chan_open(&chan, opt_channel, NULL);
     {
         ach_channel_t *chans[] = {&chan, NULL};
-        sns_sigcancel( chans, sns_sig_term_default );
+        sns_sigcancel(chans, sns_sig_term_default);
     }
 
     /*-- Construct Message --*/
 
-    struct sns_msg_motor_ref *msg = (struct sns_msg_motor_ref*)alloca( sns_msg_motor_ref_size_n(n_opt_u) );
-    sns_msg_motor_ref_init( msg, n_opt_u);
+    struct sns_msg_motor_ref *msg =
+        (struct sns_msg_motor_ref *)alloca(sns_msg_motor_ref_size_n(n_opt_u));
+    sns_msg_motor_ref_init(msg, n_opt_u);
 
     msg->mode = opt_mode;
 
-    if( opt_degrees ) {
-        for( size_t j = 0; j < n_opt_u; j ++ ) {
-            msg->u[j] = opt_u[j] * M_PI/180.0;
+    if (opt_degrees) {
+        for (size_t j = 0; j < n_opt_u; j++) {
+            msg->u[j] = opt_u[j] * M_PI / 180.0;
         }
     } else {
-        memcpy( msg->u, opt_u, n_opt_u*sizeof(msg->u[0]) );
+        memcpy(msg->u, opt_u, n_opt_u * sizeof(msg->u[0]));
     }
 
     struct timespec now;
-    clock_gettime( ACH_DEFAULT_CLOCK, &now );
-    sns_msg_set_time( &msg->header, &now, (int64_t)(1e9 * opt_dur_sec) ); /* 1 second duration */
-
+    clock_gettime(ACH_DEFAULT_CLOCK, &now);
+    sns_msg_set_time(&msg->header, &now,
+                     (int64_t)(1e9 * opt_dur_sec)); /* 1 second duration */
 
     /*-- Send Message --*/
-    if( SNS_LOG_PRIORITY(LOG_INFO) ) sns_msg_motor_ref_dump( stdout, msg );
-    enum ach_status r = ach_put( &chan, msg, sns_msg_motor_ref_size(msg) );
-    if( ACH_OK == r ) return 0;
+    if (SNS_LOG_PRIORITY(LOG_INFO)) sns_msg_motor_ref_dump(stdout, msg);
+    enum ach_status r = ach_put(&chan, msg, sns_msg_motor_ref_size(msg));
+    if (ACH_OK == r)
+        return 0;
     else {
-        fprintf( stderr, "Failed to put message: %s\n", ach_result_to_string(r) );
+        fprintf(stderr, "Failed to put message: %s\n", ach_result_to_string(r));
     }
 }

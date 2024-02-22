@@ -44,12 +44,15 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include <amino/rx/rx_ct.h>
 #include <amino/rx/scene_fk.h>
 #include <amino/rx/scene_plugin.h>
 #include <amino/rx/scene_sub.h>
 #include <amino/rx/scene_wk.h>
 #include <amino/rx/scenegraph.h>
+
+// clang-format off
+#include <amino/rx/rx_ct.h>
+// clang-format on
 
 struct joint_ctrl {
     int button;
@@ -89,27 +92,22 @@ struct cx {
     struct workspace_ctrl *workspace_ctrl;
 };
 
-static enum ach_status
-handle_js(void *cx, void *msg, size_t msg_size);
+static enum ach_status handle_js(void *cx, void *msg, size_t msg_size);
 
-static void
-teleop(struct cx *cx, struct sns_msg_joystick *msg);
+static void teleop(struct cx *cx, struct sns_msg_joystick *msg);
 
-static void
-teleop_wksp(struct cx *cx, struct sns_msg_joystick *msg);
+static void teleop_wksp(struct cx *cx, struct sns_msg_joystick *msg);
 
-static void
-halt(struct cx *cx);
+static void halt(struct cx *cx);
 
-int
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
     struct cx cx = {0};
     /* parse options */
-    double opt_frequency = 100;
+    double opt_frequency          = 100;
     const char *opt_chan_joystick = NULL;
-    const char *opt_end_effector = NULL;
-    bool workspace = false;
+    const char *opt_end_effector  = NULL;
+    bool workspace                = false;
     {
         int c = 0;
         while ((c = getopt(argc, argv, "u:y:j:e:Q:m:wh?" SNS_OPTSTRING)) !=
@@ -133,9 +131,9 @@ main(int argc, char **argv)
                     break;
                 case 'Q': {
                     struct joint_ctrl *J = AA_NEW0(struct joint_ctrl);
-                    J->button = atoi(optarg);
-                    J->next = cx.joint_ctrl;
-                    cx.joint_ctrl = J;
+                    J->button            = atoi(optarg);
+                    J->next              = cx.joint_ctrl;
+                    cx.joint_ctrl        = J;
                     break;
                 }
                 case 'm':
@@ -152,6 +150,7 @@ main(int argc, char **argv)
                     break;
                 case '?': /* help     */
                 case 'h':
+                    // clang-format off
                     puts(
                         "Usage: sns-teleopd -j <joystick-channel> -u "
                         "<ref-channel> -y <state-channel>\n"
@@ -160,25 +159,21 @@ main(int argc, char **argv)
                         "Options:\n"
                         "  -y <channel>,             state channel, input\n"
                         "  -j <channel>,             joystick channel, input\n"
-                        "  -u <channel>,             reference channel, "
-                        "output\n"
+                        "  -u <channel>,             reference channel, output\n"
                         "  -e <frame>,               end-effector frame\n"
                         "  -m <map>,                 motor map\n"
-                        "  -Q <button>,              joint-space control "
-                        "button\n"
+                        "  -Q <button>,              joint-space control button\n"
                         "  -V,                       Print program version\n"
-                        "  -w,                       Start in workspace "
-                        "control\n"
-                        "  -?,                       display this help and "
-                        "exit\n"
+                        "  -w,                       Start in workspace control\n"
+                        "  -?,                       display this help and exit\n"
                         "\n"
                         "Examples:\n"
                         "  sns-teleopd -j joystick -y state -u ref\n"
                         "\n"
-                        "  sns-teleopd -j joystick -y state -u ref -q 1 -m "
-                        "s0,s1,e0 -q 2 -m w0,w1,w2\n"
+                        "  sns-teleopd -j joystick -y state -u ref -q 1 -m s0,s1,e0 -q 2 -m w0,w1,w2\n"
                         "\n"
                         "Report bugs to " PACKAGE_BUGREPORT);
+                    // clang-format on
                     exit(EXIT_SUCCESS);
                 default:
                     SNS_DIE("Unknown Option: `%c'\n", c);
@@ -205,10 +200,10 @@ main(int argc, char **argv)
         work_ctrl->ssg = aa_rx_sg_chain_create(cx.scenegraph, AA_RX_FRAME_ROOT,
                                                work_ctrl->end_effector);
 
-        work_ctrl->n_c = aa_rx_sg_sub_config_count(work_ctrl->ssg);
+        work_ctrl->n_c     = aa_rx_sg_sub_config_count(work_ctrl->ssg);
         work_ctrl->wk_opts = aa_rx_wk_opts_create();
-        work_ctrl->n_q = aa_rx_sg_config_count(cx.scenegraph);
-        work_ctrl->fk = aa_rx_fk_malloc(cx.scenegraph);
+        work_ctrl->n_q     = aa_rx_sg_config_count(cx.scenegraph);
+        work_ctrl->fk      = aa_rx_fk_malloc(cx.scenegraph);
 
         cx.workspace_ctrl = work_ctrl;
     }
@@ -223,20 +218,20 @@ main(int argc, char **argv)
                     "End effector needed for workspace control.");
 
     struct timespec sw_time = {0, 0};
-    cx.switch_time = sw_time;
+    cx.switch_time          = sw_time;
 
     /* Reference (output) */
     sns_motor_ref_init(cx.scenegraph, cx.ref_chan, &cx.ref_set, 0, NULL);
 
     /* Input handlers */
     size_t n_handlers = 1 + sns_motor_channel_count(cx.state_chan);
-    cx.handlers = AA_NEW_AR(struct sns_evhandler, n_handlers);
+    cx.handlers       = AA_NEW_AR(struct sns_evhandler, n_handlers);
 
     /* Joystick */
     sns_chan_open(&cx.js_channel, opt_chan_joystick, NULL);
-    cx.handlers[0].channel = &cx.js_channel;
-    cx.handlers[0].context = &cx;
-    cx.handlers[0].handler = handle_js;
+    cx.handlers[0].channel     = &cx.js_channel;
+    cx.handlers[0].context     = &cx;
+    cx.handlers[0].handler     = handle_js;
     cx.handlers[0].ach_options = 0;
     for (struct joint_ctrl *J = cx.joint_ctrl; J; J = J->next) {
         sns_motor_map_fill_id(cx.scenegraph, J->map);
@@ -251,7 +246,7 @@ main(int argc, char **argv)
     sns_start();
 
     for (size_t i = 0; i < cx.ref_set->n_q; i++) {
-        cx.ref_set->u[i] = 0;
+        cx.ref_set->u[i]         = 0;
         cx.ref_set->meta[i].mode = SNS_MOTOR_MODE_VEL;
     }
     enum ach_status r =
@@ -269,10 +264,10 @@ main(int argc, char **argv)
     return 0;
 }
 
-enum ach_status
-handle_js(void *cx_, void *msg_, size_t msg_size)
+enum ach_status handle_js(void *cx_, void *msg_, size_t msg_size)
 {
     struct cx *cx = (struct cx *)cx_;
+
     struct sns_msg_joystick *msg = (struct sns_msg_joystick *)msg_;
 
     /* Switch between joint and workspace control */
@@ -287,6 +282,7 @@ handle_js(void *cx_, void *msg_, size_t msg_size)
             clock_gettime(ACH_DEFAULT_CLOCK, &cx->switch_time);
             cx->switch_time.tv_sec += 1;
             struct aa_ct_state *state_act = cx->state_act;
+
             size_t n_q = cx->workspace_ctrl->n_q;
             for (size_t i = 0; i < n_q; i++) {
                 printf("%lu: %f\n", i, state_act->q[i]);
@@ -306,8 +302,7 @@ handle_js(void *cx_, void *msg_, size_t msg_size)
     return ACH_OK;
 }
 
-void
-teleop(struct cx *cx, struct sns_msg_joystick *msg)
+void teleop(struct cx *cx, struct sns_msg_joystick *msg)
 {
     /* Select axis to use based off of button map */
     for (struct joint_ctrl *J = cx->joint_ctrl; J; J = J->next) {
@@ -324,14 +319,13 @@ teleop(struct cx *cx, struct sns_msg_joystick *msg)
     sns_motor_ref_put(cx->ref_set, &now, 1e9);
 }
 
-void
-teleop_wksp(struct cx *cx, struct sns_msg_joystick *msg)
+void teleop_wksp(struct cx *cx, struct sns_msg_joystick *msg)
 {
     cx->state_act = sns_motor_state_get(cx->state_set);
 
     struct aa_rx_wk_opts *wk_opts = cx->workspace_ctrl->wk_opts;
     struct aa_ct_state *state_act = cx->state_act;
-    struct aa_rx_fk *fk = cx->workspace_ctrl->fk;
+    struct aa_rx_fk *fk           = cx->workspace_ctrl->fk;
 
     size_t n_c = cx->workspace_ctrl->n_c;
     size_t n_q = cx->workspace_ctrl->n_q;
@@ -344,10 +338,10 @@ teleop_wksp(struct cx *cx, struct sns_msg_joystick *msg)
 
     size_t n_x = 6;
     double workspace_vel[n_x];
-    workspace_vel[AA_TF_DX_V] = -msg->axis[0];
+    workspace_vel[AA_TF_DX_V]     = -msg->axis[0];
     workspace_vel[AA_TF_DX_V + 1] = -msg->axis[1];
     workspace_vel[AA_TF_DX_V + 2] = -msg->axis[3];
-    workspace_vel[AA_TF_DX_W] = 0;
+    workspace_vel[AA_TF_DX_W]     = 0;
     workspace_vel[AA_TF_DX_W + 1] = 0;
     workspace_vel[AA_TF_DX_W + 2] = 0;
 
@@ -369,12 +363,11 @@ teleop_wksp(struct cx *cx, struct sns_msg_joystick *msg)
     sns_motor_ref_put(cx->ref_set, &now, 1e9);
 }
 
-static void
-halt(struct cx *cx)
+static void halt(struct cx *cx)
 {
     for (size_t i = 0; i < cx->ref_set->n_q; i++) {
         cx->ref_set->meta[i].mode = SNS_MOTOR_MODE_HALT;
-        cx->ref_set->u[i] = 0;
+        cx->ref_set->u[i]         = 0;
     }
 
     struct timespec now;
