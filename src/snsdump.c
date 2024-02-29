@@ -49,13 +49,15 @@
 #include "sns.h"
 #include "sns/event.h"
 
-static enum ach_status handler(void *context, void *msg, size_t msg_size);
+static enum ach_status
+handler(void *context, void *msg, size_t msg_size);
 
 char *opt_channel = NULL;
 char *opt_type    = NULL;
 double opt_freq   = 0;
 
-static void posarg(char *arg, int i)
+static void
+posarg(char *arg, int i)
 {
     if (0 == i) {
         opt_channel = strdup(arg);
@@ -67,7 +69,8 @@ static void posarg(char *arg, int i)
     }
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
     /*-- Parse Args -- */
     int i = 0;
@@ -145,7 +148,8 @@ int main(int argc, char **argv)
     return r;
 }
 
-static enum ach_status handler(void *context, void *msg, size_t msg_size)
+static enum ach_status
+handler(void *context, void *msg, size_t msg_size)
 {
     (void)msg_size;
     sns_msg_dump_fun *fun = (sns_msg_dump_fun *)context;

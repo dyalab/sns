@@ -61,13 +61,17 @@ typedef struct {
 } cx_t;
 
 /** Initialize the daemon */
-static void init(cx_t *cx);
+static void
+init(cx_t *cx);
 /** Main daemon run loop */
-static void destroy(cx_t *cx);
+static void
+destroy(cx_t *cx);
 /** Cleanup for exit */
-static void run(cx_t *cx);
+static void
+run(cx_t *cx);
 /** Update state */
-static void update(cx_t *cx, int header);
+static void
+update(cx_t *cx, int header);
 
 /* ------- */
 /* GLOBALS */
@@ -81,7 +85,8 @@ static const char *opt_out     = NULL;
 /* HELPERS */
 /* ------- */
 
-static void init(cx_t *cx)
+static void
+init(cx_t *cx)
 {
     sns_start();
 
@@ -110,7 +115,8 @@ static void init(cx_t *cx)
     update(cx, 1);
 }
 
-static void update(cx_t *cx, int header)
+static void
+update(cx_t *cx, int header)
 {
     // get message
     size_t n;
@@ -162,7 +168,8 @@ static void update(cx_t *cx, int header)
     sigprocmask(SIG_UNBLOCK, &set, NULL);
 }
 
-static void run(cx_t *cx)
+static void
+run(cx_t *cx)
 {
     while (!sns_cx.shutdown) {
         update(cx, 0);
@@ -170,7 +177,8 @@ static void run(cx_t *cx)
     }
 }
 
-void destroy(cx_t *cx)
+void
+destroy(cx_t *cx)
 {
     fclose(cx->out);
     sns_chan_close(&cx->chan);
@@ -181,7 +189,8 @@ void destroy(cx_t *cx)
 /* MAIN */
 /* ---- */
 
-static void posarg(char *arg, int i)
+static void
+posarg(char *arg, int i)
 {
     if (0 == i) {
         opt_channel = strdup(arg);
@@ -193,7 +202,8 @@ static void posarg(char *arg, int i)
     }
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
     (void)argc;
     (void)argv;

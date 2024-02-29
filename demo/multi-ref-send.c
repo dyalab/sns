@@ -6,7 +6,8 @@
 
 #include <sns/motor.h>
 
-int main(void)
+int
+main(void)
 {
     sns_init();
 

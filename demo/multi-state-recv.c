@@ -13,9 +13,11 @@
 #include <sns/motor.h>
 
 /* Callback function for the event loop */
-static enum ach_status periodic(void *cx);
+static enum ach_status
+periodic(void *cx);
 
-int main(void)
+int
+main(void)
 {
     sns_init();
 
@@ -46,7 +48,8 @@ int main(void)
     sns_end();
 }
 
-static enum ach_status periodic(void *cx_)
+static enum ach_status
+periodic(void *cx_)
 {
     struct sns_motor_state_set *state_set = (struct sns_motor_state_set *)cx_;
     struct aa_ct_state *state             = sns_motor_state_get(state_set);

@@ -48,8 +48,9 @@
 #include <amino/rx/rxtype.h>
 #include <amino/rx/scenegraph.h>
 
-void sns_motor_map_in(const struct sns_motor_map *M, size_t n_sub,
-                      const double *q_sub, double *q_all)
+void
+sns_motor_map_in(const struct sns_motor_map *M, size_t n_sub,
+                 const double *q_sub, double *q_all)
 {
     size_t n = AA_MIN(n_sub, M->n);
     for (size_t i = 0; i < n; i++) {
@@ -58,10 +59,11 @@ void sns_motor_map_in(const struct sns_motor_map *M, size_t n_sub,
     }
 }
 
-AA_API void sns_motor_map_state_out(const struct aa_ct_state *state,
-                                    const struct sns_motor_map *M,
-                                    const struct timespec *now, int64_t dur_ns,
-                                    struct ach_channel *channel)
+AA_API void
+sns_motor_map_state_out(const struct aa_ct_state *state,
+                        const struct sns_motor_map *M,
+                        const struct timespec *now, int64_t dur_ns,
+                        struct ach_channel *channel)
 {
     /* allocate */
     struct sns_msg_motor_state *msg;
@@ -99,7 +101,8 @@ AA_API void sns_motor_map_state_out(const struct aa_ct_state *state,
     aa_mem_region_local_pop(msg);
 }
 
-void sns_motor_map_destroy(struct sns_motor_map *m)
+void
+sns_motor_map_destroy(struct sns_motor_map *m)
 {
     for (size_t i = 0; i < m->n; i++) {
         free(m->name[i]);
@@ -109,7 +112,8 @@ void sns_motor_map_destroy(struct sns_motor_map *m)
     free(m);
 }
 
-struct sns_motor_map *sns_motor_map_parse(const char *str)
+struct sns_motor_map *
+sns_motor_map_parse(const char *str)
 {
     char *saveptr = NULL;
     size_t n_var  = 0;
@@ -146,7 +150,8 @@ struct sns_motor_map *sns_motor_map_parse(const char *str)
     return M;
 }
 
-int sns_motor_map_fill_id(const struct aa_rx_sg *sg, struct sns_motor_map *M)
+int
+sns_motor_map_fill_id(const struct aa_rx_sg *sg, struct sns_motor_map *M)
 {
     M->sg = sg;
     for (size_t i = 0; i < M->n; i++) {
@@ -163,7 +168,8 @@ int sns_motor_map_fill_id(const struct aa_rx_sg *sg, struct sns_motor_map *M)
     return 0;
 }
 
-void sns_motor_channel_push(const char *name, struct sns_motor_channel **phead)
+void
+sns_motor_channel_push(const char *name, struct sns_motor_channel **phead)
 {
     struct sns_motor_channel *mc = AA_NEW0(struct sns_motor_channel);
 
@@ -186,8 +192,9 @@ void sns_motor_channel_push(const char *name, struct sns_motor_channel **phead)
 /*     } */
 /* } */
 
-AA_API void sns_motor_state_put(struct sns_motor_state_set *state_set,
-                                const struct timespec *now, int64_t dur_ns)
+AA_API void
+sns_motor_state_put(struct sns_motor_state_set *state_set,
+                    const struct timespec *now, int64_t dur_ns)
 {
     for (size_t i = 0; i < state_set->n_elt; i++) {
         struct sns_motor_channel *mc = state_set->elt[i].channel;
@@ -196,8 +203,9 @@ AA_API void sns_motor_state_put(struct sns_motor_state_set *state_set,
     }
 }
 
-AA_API void sns_motor_ref_put(struct sns_motor_ref_set *ref_set,
-                              const struct timespec *now, int64_t dur_ns)
+AA_API void
+sns_motor_ref_put(struct sns_motor_ref_set *ref_set, const struct timespec *now,
+                  int64_t dur_ns)
 {
     for (size_t i = 0; i < ref_set->n_elt; i++) {
         struct sns_motor_channel *mc = ref_set->elt[i].channel;
@@ -245,14 +253,15 @@ AA_API void sns_motor_ref_put(struct sns_motor_ref_set *ref_set,
     }
 }
 
-void sns_motor_channel_parse_map(struct sns_motor_channel *mc,
-                                 const char *mapstr)
+void
+sns_motor_channel_parse_map(struct sns_motor_channel *mc, const char *mapstr)
 {
     mc->map = sns_motor_map_parse(mapstr);
 }
 
-void sns_motor_channel_init(struct sns_motor_channel *list,
-                            const struct aa_rx_sg *scenegraph)
+void
+sns_motor_channel_init(struct sns_motor_channel *list,
+                       const struct aa_rx_sg *scenegraph)
 {
     while (list) {
         sns_chan_open(&list->channel, list->name, NULL);
@@ -277,8 +286,9 @@ void sns_motor_channel_init(struct sns_motor_channel *list,
     }
 }
 
-AA_API void sns_motor_ref_fill(const struct sns_msg_motor_ref *msg,
-                               struct sns_motor_ref_elt *ref_elt)
+AA_API void
+sns_motor_ref_fill(const struct sns_msg_motor_ref *msg,
+                   struct sns_motor_ref_elt *ref_elt)
 {
     size_t n = ref_elt->n;
 
@@ -298,8 +308,9 @@ AA_API void sns_motor_ref_fill(const struct sns_msg_motor_ref *msg,
     }
 }
 
-static void fill_state(size_t n_q, const struct sns_motor_map *map,
-                       const double *msg, size_t inc_msg, double *state)
+static void
+fill_state(size_t n_q, const struct sns_motor_map *map, const double *msg,
+           size_t inc_msg, double *state)
 {
     if (msg && state) {
         if (map) {
@@ -313,8 +324,9 @@ static void fill_state(size_t n_q, const struct sns_motor_map *map,
     }
 }
 
-AA_API void sns_motor_state_fill(const struct sns_msg_motor_state *msg,
-                                 struct sns_motor_state_elt *state_elt)
+AA_API void
+sns_motor_state_fill(const struct sns_msg_motor_state *msg,
+                     struct sns_motor_state_elt *state_elt)
 {
     size_t n                  = state_elt->n;
     struct sns_motor_map *map = state_elt->channel->map;
@@ -339,7 +351,8 @@ AA_API void sns_motor_state_fill(const struct sns_msg_motor_state *msg,
     }
 }
 
-static int is_expired(struct timespec now, struct timespec expiration)
+static int
+is_expired(struct timespec now, struct timespec expiration)
 {
     if (aa_tm_cmp(now, expiration) < 0)
         return 0;
@@ -347,9 +360,9 @@ static int is_expired(struct timespec now, struct timespec expiration)
         return 1;
 }
 
-static void collate1(const struct timespec *now,
-                     const struct sns_motor_ref_elt *e,
-                     struct sns_motor_ref_set *set, double u, size_t j)
+static void
+collate1(const struct timespec *now, const struct sns_motor_ref_elt *e,
+         struct sns_motor_ref_set *set, double u, size_t j)
 {
     struct sns_motor_ref_meta *smeta = set->meta + j;
     int pu = e->meta.priority, ps = smeta->priority;
@@ -365,8 +378,8 @@ static void collate1(const struct timespec *now,
     }
 }
 
-AA_API void sns_motor_ref_collate(const struct timespec *now,
-                                  struct sns_motor_ref_set *set)
+AA_API void
+sns_motor_ref_collate(const struct timespec *now, struct sns_motor_ref_set *set)
 {
     const struct sns_motor_ref_elt *elts = set->elt;
 
@@ -394,7 +407,8 @@ AA_API void sns_motor_ref_collate(const struct timespec *now,
     }
 }
 
-AA_API size_t sns_motor_channel_count(struct sns_motor_channel *list)
+AA_API size_t
+sns_motor_channel_count(struct sns_motor_channel *list)
 {
     size_t n = 0;
     while (list) {
@@ -404,8 +418,9 @@ AA_API size_t sns_motor_channel_count(struct sns_motor_channel *list)
     return n;
 }
 
-AA_API struct sns_motor_ref_elt *sns_motor_ref_elt_init(
-    const struct aa_rx_sg *scenegraph, struct sns_motor_channel *list)
+AA_API struct sns_motor_ref_elt *
+sns_motor_ref_elt_init(const struct aa_rx_sg *scenegraph,
+                       struct sns_motor_channel *list)
 {
     size_t n_list  = sns_motor_channel_count(list);
     size_t n_q_all = aa_rx_sg_config_count(scenegraph);
@@ -425,7 +440,8 @@ AA_API struct sns_motor_ref_elt *sns_motor_ref_elt_init(
     return elts;
 }
 
-static enum ach_status ref_handler(void *cx_, void *msg_, size_t frame_size)
+static enum ach_status
+ref_handler(void *cx_, void *msg_, size_t frame_size)
 {
     struct sns_msg_motor_ref *msg = (struct sns_msg_motor_ref *)msg_;
     struct sns_motor_ref_elt *e   = (struct sns_motor_ref_elt *)cx_;
@@ -440,7 +456,8 @@ static enum ach_status ref_handler(void *cx_, void *msg_, size_t frame_size)
     return ACH_OK;
 }
 
-static enum ach_status state_handler(void *cx_, void *msg_, size_t frame_size)
+static enum ach_status
+state_handler(void *cx_, void *msg_, size_t frame_size)
 {
     struct sns_msg_motor_state *msg = (struct sns_msg_motor_state *)msg_;
     struct sns_motor_state_elt *e   = (struct sns_motor_state_elt *)cx_;
@@ -454,11 +471,11 @@ static enum ach_status state_handler(void *cx_, void *msg_, size_t frame_size)
     return ACH_OK;
 }
 
-AA_API void sns_motor_ref_init(const struct aa_rx_sg *scenegraph,
-                               struct sns_motor_channel *list,
-                               struct sns_motor_ref_set **ref_set,
-                               size_t n_handlers,
-                               struct sns_evhandler *handlers)
+AA_API void
+sns_motor_ref_init(const struct aa_rx_sg *scenegraph,
+                   struct sns_motor_channel *list,
+                   struct sns_motor_ref_set **ref_set, size_t n_handlers,
+                   struct sns_evhandler *handlers)
 {
     /* Init channels */
     sns_motor_channel_init(list, scenegraph);
@@ -484,11 +501,11 @@ AA_API void sns_motor_ref_init(const struct aa_rx_sg *scenegraph,
     }
 }
 
-AA_API void sns_motor_state_init(const struct aa_rx_sg *scenegraph,
-                                 struct sns_motor_channel *list,
-                                 struct sns_motor_state_set **state_set,
-                                 size_t n_handlers,
-                                 struct sns_evhandler *handlers)
+AA_API void
+sns_motor_state_init(const struct aa_rx_sg *scenegraph,
+                     struct sns_motor_channel *list,
+                     struct sns_motor_state_set **state_set, size_t n_handlers,
+                     struct sns_evhandler *handlers)
 {
     /* Init channels */
     sns_motor_channel_init(list, scenegraph);
@@ -537,24 +554,26 @@ AA_API void sns_motor_state_init(const struct aa_rx_sg *scenegraph,
     }
 }
 
-AA_API struct sns_motor_map *sns_motor_ref_elt_map(
-    const struct sns_motor_ref_elt *e)
+AA_API struct sns_motor_map *
+sns_motor_ref_elt_map(const struct sns_motor_ref_elt *e)
 {
     return e->channel->map;
 }
 
-AA_API size_t sns_motor_ref_elt_config_count(const struct sns_motor_ref_elt *e)
+AA_API size_t
+sns_motor_ref_elt_config_count(const struct sns_motor_ref_elt *e)
 {
     return e->n;
 }
 
-AA_API const struct aa_rx_sg *sns_motor_map_sg(struct sns_motor_map *map)
+AA_API const struct aa_rx_sg *
+sns_motor_map_sg(struct sns_motor_map *map)
 {
     return map->sg;
 }
 
-AA_API struct aa_ct_state *sns_motor_state_get(
-    struct sns_motor_state_set *state_set)
+AA_API struct aa_ct_state *
+sns_motor_state_get(struct sns_motor_state_set *state_set)
 {
     return state_set->state;
 }

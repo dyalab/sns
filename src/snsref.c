@@ -53,7 +53,8 @@ sns_real_t *opt_u            = NULL;
 uint32_t n_opt_u             = 0;
 int opt_degrees              = 0;
 
-static void posarg(char *arg, int i)
+static void
+posarg(char *arg, int i)
 {
     if (0 == i) {
         opt_channel = strdup(arg);
@@ -63,7 +64,8 @@ static void posarg(char *arg, int i)
     }
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
     /*-- Parse Args -- */
     int i              = 0;

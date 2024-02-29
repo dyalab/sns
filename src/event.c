@@ -42,10 +42,9 @@
 
 #include <ach/experimental.h>
 
-static enum ach_status sns_evhandle_impl(struct sns_evhandler *cx,
-                                         ach_channel_t *channel,
-                                         const struct timespec *timeout,
-                                         int ach_options)
+static enum ach_status
+sns_evhandle_impl(struct sns_evhandler *cx, ach_channel_t *channel,
+                  const struct timespec *timeout, int ach_options)
 {
     /* get message */
     void *buf = NULL;
@@ -65,23 +64,26 @@ static enum ach_status sns_evhandle_impl(struct sns_evhandler *cx,
     return r;
 }
 
-static enum ach_status sns_evhandle_fun(void *_cx, ach_channel_t *channel)
+static enum ach_status
+sns_evhandle_fun(void *_cx, ach_channel_t *channel)
 {
     struct sns_evhandler *cx = (struct sns_evhandler *)_cx;
     return sns_evhandle_impl(cx, channel, NULL, cx->ach_options);
 }
 
-static void check_evhandle_result(enum ach_status r)
+static void
+check_evhandle_result(enum ach_status r)
 {
     SNS_REQUIRE(
         ach_status_match(r, ACH_MASK_OK | ACH_MASK_CANCELED | ACH_MASK_TIMEOUT),
         "asdf Could not handle events: %s, %s\n", ach_result_to_string(r),
         strerror(errno));
 }
-enum ach_status ACH_WARN_UNUSED sns_evhandle(
-    struct sns_evhandler *handlers, size_t n, const struct timespec *period,
-    enum ach_status (*periodic_handler)(void *context), void *periodic_context,
-    int *cancel_sigs, int options)
+enum ach_status ACH_WARN_UNUSED
+sns_evhandle(struct sns_evhandler *handlers, size_t n,
+             const struct timespec *period,
+             enum ach_status (*periodic_handler)(void *context),
+             void *periodic_context, int *cancel_sigs, int options)
 {
     /* Create ach handlers */
     /* Install cancel handler */

@@ -47,7 +47,8 @@
 #include <syslog.h>
 #include "sns.h"
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
     if (argc != 2) {
         fprintf(stderr, "USAGE: sns-trylock LOCK-FILENAME\n");

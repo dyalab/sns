@@ -132,8 +132,9 @@ typedef struct sns_msg_header {
  * @return true when message is expired.  False when message is not
  * expired.
  */
-int sns_msg_is_expired(const struct sns_msg_header *msg,
-                       const struct timespec *now);
+int
+sns_msg_is_expired(const struct sns_msg_header *msg,
+                   const struct timespec *now);
 
 /**
  * Set the time in the message
@@ -142,8 +143,9 @@ int sns_msg_is_expired(const struct sns_msg_header *msg,
  * @param[in]  now           the message timestamp
  * @param[in]  duration_ns   the message duration in nanoseconds
  */
-void sns_msg_set_time(struct sns_msg_header *msg, const struct timespec *now,
-                      int64_t duration_ns);
+void
+sns_msg_set_time(struct sns_msg_header *msg, const struct timespec *now,
+                 int64_t duration_ns);
 
 /**
  * Extract the message timestamp as a timespec
@@ -152,7 +154,8 @@ void sns_msg_set_time(struct sns_msg_header *msg, const struct timespec *now,
  *
  * @return the timestamp of msg
  */
-static inline struct timespec sns_msg_get_time(const struct sns_msg_header *msg)
+static inline struct timespec
+sns_msg_get_time(const struct sns_msg_header *msg)
 {
     struct timespec ts;
     ts.tv_sec  = msg->sec;
@@ -167,8 +170,8 @@ static inline struct timespec sns_msg_get_time(const struct sns_msg_header *msg)
  *
  * @return the expiration time of msg
  */
-static inline struct timespec sns_msg_get_expiration(
-    const struct sns_msg_header *msg)
+static inline struct timespec
+sns_msg_get_expiration(const struct sns_msg_header *msg)
 {
     struct timespec dur_ts;
     dur_ts.tv_sec  = msg->dur_nsec / (time_t)1e9;
@@ -184,7 +187,8 @@ static inline struct timespec sns_msg_get_expiration(
  *
  * @param[out] msg An SNS message
  */
-void sns_msg_header_fill(struct sns_msg_header *msg);
+void
+sns_msg_header_fill(struct sns_msg_header *msg);
 
 /* True if frame_size is too small */
 
@@ -215,10 +219,9 @@ void sns_msg_header_fill(struct sns_msg_header *msg);
  * @param[in]  abstime     timeout for ach_get()
  * @param[in]  options     options for ach_get()
  */
-enum ach_status sns_msg_local_get(ach_channel_t *chan, void **pbuf,
-                                  size_t *frame_size,
-                                  const struct timespec *ACH_RESTRICT abstime,
-                                  int options);
+enum ach_status
+sns_msg_local_get(ach_channel_t *chan, void **pbuf, size_t *frame_size,
+                  const struct timespec *ACH_RESTRICT abstime, int options);
 
 /**
  * read an ACH message into buffer from the given memory region
@@ -234,11 +237,10 @@ enum ach_status sns_msg_local_get(ach_channel_t *chan, void **pbuf,
  * @param[in]     abstime     timeout for ach_get()
  * @param[in]     options     options for ach_get()
  */
-enum ach_status sns_msg_region_get(ach_channel_t *chan,
-                                   struct aa_mem_region *region, void **pbuf,
-                                   size_t *frame_size,
-                                   const struct timespec *ACH_RESTRICT abstime,
-                                   int options);
+enum ach_status
+sns_msg_region_get(ach_channel_t *chan, struct aa_mem_region *region,
+                   void **pbuf, size_t *frame_size,
+                   const struct timespec *ACH_RESTRICT abstime, int options);
 
 /**
  * Define many functions for vararray messages
@@ -414,7 +416,8 @@ struct sns_msg_matrix {
 /**
  * Compute message size of matrix with given rows and columns.
  */
-static inline size_t sns_msg_matrix_size_mn(size_t rows, size_t cols)
+static inline size_t
+sns_msg_matrix_size_mn(size_t rows, size_t cols)
 {
     static const struct sns_msg_matrix *msg;
     return sizeof(*msg) - sizeof(msg->x[0]) + sizeof(msg->x[0]) * rows * cols;
@@ -423,7 +426,8 @@ static inline size_t sns_msg_matrix_size_mn(size_t rows, size_t cols)
 /**
  * Compute message size of the given matrix.
  */
-static inline size_t sns_msg_matrix_size(const struct sns_msg_matrix *msg)
+static inline size_t
+sns_msg_matrix_size(const struct sns_msg_matrix *msg)
 {
     return sns_msg_matrix_size_mn(msg->rows, msg->cols);
 }
@@ -525,7 +529,8 @@ enum sns_motor_mode {
 /**
  * Return string describing the motor mode.
  */
-AA_API const char *sns_motor_mode_str(enum sns_motor_mode mode);
+AA_API const char *
+sns_motor_mode_str(enum sns_motor_mode mode);
 
 /**
  * Message type for motor commands
@@ -631,58 +636,62 @@ SNS_DEC_MSG_PLUGINS(sns_msg_motor_state);
 
 // TODO: use increment/leading-dimension/offset to store optional values
 
-static inline double *sns_msg_motor_state_pos(struct sns_msg_motor_state *msg)
+static inline double *
+sns_msg_motor_state_pos(struct sns_msg_motor_state *msg)
 {
     return &msg->X[0].pos;
 }
 
-static inline double *sns_msg_motor_state_vel(struct sns_msg_motor_state *msg)
+static inline double *
+sns_msg_motor_state_vel(struct sns_msg_motor_state *msg)
 {
     return &msg->X[0].vel;
 }
 
-static inline double *sns_msg_motor_state_acc(struct sns_msg_motor_state *msg)
+static inline double *
+sns_msg_motor_state_acc(struct sns_msg_motor_state *msg)
 {
     (void)msg;
     return NULL;
 }
 
-static inline double *sns_msg_motor_state_eff(struct sns_msg_motor_state *msg)
+static inline double *
+sns_msg_motor_state_eff(struct sns_msg_motor_state *msg)
 {
     (void)msg;
     return NULL;
 }
 
-static inline size_t sns_msg_motor_state_incpos(
-    const struct sns_msg_motor_state *msg)
+static inline size_t
+sns_msg_motor_state_incpos(const struct sns_msg_motor_state *msg)
 {
     (void)msg;
     return 2;
 }
 
-static inline size_t sns_msg_motor_state_incvel(
-    const struct sns_msg_motor_state *msg)
+static inline size_t
+sns_msg_motor_state_incvel(const struct sns_msg_motor_state *msg)
 {
     (void)msg;
     return 2;
 }
 
-static inline size_t sns_msg_motor_state_incacc(
-    const struct sns_msg_motor_state *msg)
+static inline size_t
+sns_msg_motor_state_incacc(const struct sns_msg_motor_state *msg)
 {
     (void)msg;
     return 0;
 }
 
-static inline size_t sns_msg_motor_state_inceff(
-    const struct sns_msg_motor_state *msg)
+static inline size_t
+sns_msg_motor_state_inceff(const struct sns_msg_motor_state *msg)
 {
     (void)msg;
     return 0;
 }
 
-static inline uint32_t sns_msg_motor_state_count(
-    const struct sns_msg_motor_state *msg)
+static inline uint32_t
+sns_msg_motor_state_count(const struct sns_msg_motor_state *msg)
 {
     return msg->header.n;
 }
@@ -723,7 +732,8 @@ SNS_DEC_MSG_PLUGINS(sns_msg_joystick);
 /*************************/
 
 /** Allocate a motor_ref message */
-struct sns_msg_motor_ref *sns_msg_motor_ref_alloc(uint64_t n) AA_DEPRECATED;
+struct sns_msg_motor_ref *
+sns_msg_motor_ref_alloc(uint64_t n) AA_DEPRECATED;
 
 /***********/
 /* PLUGINS */
@@ -732,31 +742,35 @@ struct sns_msg_motor_ref *sns_msg_motor_ref_alloc(uint64_t n) AA_DEPRECATED;
 /**
  * Plugin function to print message to a FILE handle
  */
-typedef void sns_msg_dump_fun(FILE *, void *);
+typedef void
+sns_msg_dump_fun(FILE *, void *);
 
 /**
  * Plugin function to generate a plot sample for a message
  */
-typedef void sns_msg_plot_sample_fun(const void *, double **, char ***,
-                                     size_t *);
+typedef void
+sns_msg_plot_sample_fun(const void *, double **, char ***, size_t *);
 
 // TODO: message validation
 
 /**
  * Load symbol from message plugin
  */
-void *sns_msg_plugin_symbol(const char *type, const char *symbol);
+void *
+sns_msg_plugin_symbol(const char *type, const char *symbol);
 
 /**
  * Declaration for the plugin dump function
  */
-void sns_msg_dump(FILE *out, const void *msg);
+void
+sns_msg_dump(FILE *out, const void *msg);
 
 /**
  * Declaration for the plugin plog_sample function
  */
-void sns_msg_plot_sample(const void *msg, double **sample_ptr,
-                         char ***sample_labels, size_t *sample_size);
+void
+sns_msg_plot_sample(const void *msg, double **sample_ptr, char ***sample_labels,
+                    size_t *sample_size);
 
 #ifdef __cplusplus
 }

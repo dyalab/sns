@@ -75,17 +75,22 @@ struct cx {
 };
 
 /* Run io */
-void io(struct cx *cx);
+void
+io(struct cx *cx);
 /* Pthreads start function for io */
-void *io_start(void *cx);
+void *
+io_start(void *cx);
 
 /* Call periodically from io thread */
-enum ach_status io_periodic(void *cx);
+enum ach_status
+io_periodic(void *cx);
 
 /* Perform a simulation step */
-enum ach_status simulate(struct cx *cx);
+enum ach_status
+simulate(struct cx *cx);
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
     struct cx cx;
     AA_MEM_ZERO(&cx, 1);
@@ -202,13 +207,15 @@ int main(int argc, char **argv)
     return 0;
 }
 
-void *io_start(void *cx)
+void *
+io_start(void *cx)
 {
     io((struct cx *)cx);
     return NULL;
 }
 
-void io(struct cx *cx)
+void
+io(struct cx *cx)
 {
     /* Run Loop */
     enum ach_status r = sns_evhandle(
@@ -224,7 +231,8 @@ void io(struct cx *cx)
     }
 }
 
-enum ach_status io_periodic(void *cx_)
+enum ach_status
+io_periodic(void *cx_)
 {
     struct cx *cx = (struct cx *)cx_;
 
@@ -246,7 +254,8 @@ enum ach_status io_periodic(void *cx_)
     }
 }
 
-enum ach_status simulate(struct cx *cx)
+enum ach_status
+simulate(struct cx *cx)
 {
     struct timespec now;
     clock_gettime(ACH_DEFAULT_CLOCK, &now);

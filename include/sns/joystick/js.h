@@ -81,7 +81,8 @@ typedef struct js js_t;
  * @return Pointer to a newly allocated js_t or NULL if allocation or opening
  * the device failed
  */
-js_t *js_open(uint8_t index);
+js_t *
+js_open(uint8_t index);
 
 /**
  * Opens the first available joystick
@@ -89,7 +90,8 @@ js_t *js_open(uint8_t index);
  * @return Pointer to a newly allocated js_t for the first Joystick or NULL if
  * allocation or opening failed
  */
-js_t *js_open_first();
+js_t *
+js_open_first();
 
 /**
  * Polls the joystick for a single event. Note that this does no process on the
@@ -99,7 +101,8 @@ js_t *js_open_first();
  * @param js The joystick to poll
  * @return An event received from the joystick.
  */
-js_event_t *js_poll_event(js_t *js);
+js_event_t *
+js_poll_event(js_t *js);
 
 /**
  * Polls the requested joystick for all events since the last poll and updates
@@ -108,14 +111,16 @@ js_event_t *js_poll_event(js_t *js);
  * @param js The joystick to poll
  * @return 0 on success, -1 on failure
  */
-int js_poll_state(js_t *js);
+int
+js_poll_state(js_t *js);
 
 /**
  * Close and free a js_t
  *
  * @param js The joystick to close
  */
-void js_close(js_t *js);
+void
+js_close(js_t *js);
 
 #ifdef __cplusplus
 }

@@ -71,19 +71,25 @@ typedef struct {
 } cx_t;
 
 /** Initialize the daemon */
-static void init(cx_t *cx);
+static void
+init(cx_t *cx);
 /** Main daemon run loop */
-static void destroy(cx_t *cx);
+static void
+destroy(cx_t *cx);
 /** Cleanup for exit */
-static void run(cx_t *cx);
+static void
+run(cx_t *cx);
 /** Update state */
-static void update(cx_t *cx);
+static void
+update(cx_t *cx);
 
 /** Get next msg */
-static void next_msg(cx_t *cx, double **samples, char ***labels, size_t *n);
+static void
+next_msg(cx_t *cx, double **samples, char ***labels, size_t *n);
 
 /** display plot */
-static void plot(gnuplot_live_t *pl);
+static void
+plot(gnuplot_live_t *pl);
 
 /* ------- */
 /* GLOBALS */
@@ -110,7 +116,8 @@ static const char *opt_title = NULL;
 /* HELPERS */
 /* ------- */
 
-static int use_index(size_t i)
+static int
+use_index(size_t i)
 {
     if (opt_include) {
         return aa_bits_getn(opt_include, opt_n_include, i);
@@ -120,7 +127,8 @@ static int use_index(size_t i)
         return 1;
 }
 
-static void init(cx_t *cx)
+static void
+init(cx_t *cx)
 {
     sns_start();
 
@@ -160,7 +168,8 @@ static void init(cx_t *cx)
     cx->plot.printed_header = 0;
 }
 
-static void next_msg(cx_t *cx, double **samples, char ***labels, size_t *n)
+static void
+next_msg(cx_t *cx, double **samples, char ***labels, size_t *n)
 {
     void *buf;
     size_t frame_size;
@@ -176,7 +185,8 @@ static void next_msg(cx_t *cx, double **samples, char ***labels, size_t *n)
     cx->fun(buf, samples, labels, n);
 }
 
-static void update(cx_t *cx)
+static void
+update(cx_t *cx)
 {
     // get message
     size_t n;
@@ -190,7 +200,8 @@ static void update(cx_t *cx)
     cx->plot.i = (cx->plot.i + 1) % cx->plot.n_samples;
 }
 
-static void run(cx_t *cx)
+static void
+run(cx_t *cx)
 {
     while (!sns_cx.shutdown) {
         update(cx);
@@ -202,7 +213,8 @@ static void run(cx_t *cx)
     }
 }
 
-void destroy(cx_t *cx)
+void
+destroy(cx_t *cx)
 {
     // close channel
     sns_chan_close(&cx->chan_in);
@@ -212,7 +224,8 @@ void destroy(cx_t *cx)
     sns_end();
 }
 
-static void plot(gnuplot_live_t *pl)
+static void
+plot(gnuplot_live_t *pl)
 {
     // header
     if (!pl->printed_header) {
@@ -258,7 +271,8 @@ static void plot(gnuplot_live_t *pl)
 /* MAIN */
 /* ---- */
 
-static void posarg(char *arg, int i)
+static void
+posarg(char *arg, int i)
 {
     if (0 == i) {
         opt_channel = strdup(arg);
@@ -270,7 +284,8 @@ static void posarg(char *arg, int i)
     }
 }
 
-static void set_bit(aa_bits **pbits, size_t *psize, char *arg)
+static void
+set_bit(aa_bits **pbits, size_t *psize, char *arg)
 {
     size_t i    = (size_t)atoi(arg);
     size_t size = aa_bits_size(i);
@@ -284,7 +299,8 @@ static void set_bit(aa_bits **pbits, size_t *psize, char *arg)
     aa_bits_set(*pbits, i, 1);
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
     (void)argc;
     (void)argv;

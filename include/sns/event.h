@@ -102,16 +102,15 @@ struct sns_evhandler {
  *                             ACH_EV_O_PERIODIC_INPUT and
  *                             ACH_EV_O_PERIODIC_TIMEOUT
  */
-enum ach_status ACH_WARN_UNUSED sns_evhandle(
-    struct sns_evhandler *handlers, 
-    size_t n, 
-    const struct timespec *period,
-    enum ach_status (*periodic_handler)(void *context), 
-    void *periodic_context,
-    int *cancel_sigs, 
-    int options);
+enum ach_status ACH_WARN_UNUSED
+sns_evhandle(struct sns_evhandler *handlers,
+             size_t n,
+             const struct timespec *period,
+             enum ach_status (*periodic_handler)(void *context),
+             void *periodic_context,
+             int *cancel_sigs,
+             int options);
 // clang-format on
-
 #ifdef __cplusplus
 }
 #endif

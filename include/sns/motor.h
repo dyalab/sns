@@ -90,7 +90,8 @@ struct sns_motor_map {
 /**
  * Return the scenegraph for the map
  */
-AA_API const struct aa_rx_sg *sns_motor_map_sg(struct sns_motor_map *map);
+AA_API const struct aa_rx_sg *
+sns_motor_map_sg(struct sns_motor_map *map);
 
 /**
  * Descriptor for a motor message channel with axis remapping.
@@ -152,13 +153,14 @@ struct sns_motor_ref_elt {
 /**
  * Return number of configurations described by the reference element.
  */
-AA_API size_t sns_motor_ref_elt_config_count(const struct sns_motor_ref_elt *e);
+AA_API size_t
+sns_motor_ref_elt_config_count(const struct sns_motor_ref_elt *e);
 
 /**
  * Return remapping parameter (possibly NULL);
  */
-AA_API struct sns_motor_map *sns_motor_ref_elt_map(
-    const struct sns_motor_ref_elt *e);
+AA_API struct sns_motor_map *
+sns_motor_ref_elt_map(const struct sns_motor_ref_elt *e);
 
 /**
  * A set of motor references.
@@ -211,43 +213,50 @@ struct sns_motor_state_set {
 /**
  * Fill q_all with values from q_sub, remapped according to M.
  */
-AA_API void sns_motor_map_in(const struct sns_motor_map *M, size_t n_sub,
-                             const double *q_sub, double *q_all);
+AA_API void
+sns_motor_map_in(const struct sns_motor_map *M, size_t n_sub,
+                 const double *q_sub, double *q_all);
 
 /**
  * Write state to channel, remapping if necessary.
  */
-AA_API void sns_motor_map_state_out(const struct aa_ct_state *state,
-                                    const struct sns_motor_map *M,
-                                    const struct timespec *now, int64_t dur_ns,
-                                    struct ach_channel *channel);
+AA_API void
+sns_motor_map_state_out(const struct aa_ct_state *state,
+                        const struct sns_motor_map *M,
+                        const struct timespec *now, int64_t dur_ns,
+                        struct ach_channel *channel);
 
 /**
  * Destroy the motor map
  */
-void sns_motor_map_destroy(struct sns_motor_map *m);
+void
+sns_motor_map_destroy(struct sns_motor_map *m);
 
 /**
  * Parse str as a comma separated list.
  */
-struct sns_motor_map *sns_motor_map_parse(const char *str);
+struct sns_motor_map *
+sns_motor_map_parse(const char *str);
 
 /**
  * Fill the config ids in motor map.
  */
-int sns_motor_map_fill_id(const struct aa_rx_sg *sg, struct sns_motor_map *M);
+int
+sns_motor_map_fill_id(const struct aa_rx_sg *sg, struct sns_motor_map *M);
 
 /**
  * Fill motor reference element from a single message
  */
-AA_API void sns_motor_ref_fill(const struct sns_msg_motor_ref *msg,
-                               struct sns_motor_ref_elt *ref_elt);
+AA_API void
+sns_motor_ref_fill(const struct sns_msg_motor_ref *msg,
+                   struct sns_motor_ref_elt *ref_elt);
 
 /**
  * Combine many reference messages into a single set.
  */
-AA_API void sns_motor_ref_collate(const struct timespec *now,
-                                  struct sns_motor_ref_set *set);
+AA_API void
+sns_motor_ref_collate(const struct timespec *now,
+                      struct sns_motor_ref_set *set);
 
 /**
  * Add a new channel to the list.
@@ -258,8 +267,8 @@ AA_API void sns_motor_ref_collate(const struct timespec *now,
  * @sa sns_motor_ref_init()
  * @sa sns_motor_state_init()
  */
-AA_API void sns_motor_channel_push(const char *name,
-                                   struct sns_motor_channel **plist);
+AA_API void
+sns_motor_channel_push(const char *name, struct sns_motor_channel **plist);
 
 /* /\** */
 /*  * Post state to the motor channel, remapping as necessary. */
@@ -276,8 +285,8 @@ AA_API void sns_motor_channel_push(const char *name,
  * @param str Comma separated list of configuration variables to pass over the
  * channel
  */
-AA_API void sns_motor_channel_parse_map(struct sns_motor_channel *mc,
-                                        const char *str);
+AA_API void
+sns_motor_channel_parse_map(struct sns_motor_channel *mc, const char *str);
 
 /**
  * Initialize variables in the motor channel list
@@ -285,52 +294,56 @@ AA_API void sns_motor_channel_parse_map(struct sns_motor_channel *mc,
  * @pre scenegraph is initialized
  */
 
-AA_API void sns_motor_channel_init(struct sns_motor_channel *list,
-                                   const struct aa_rx_sg *scenegraph);
+AA_API void
+sns_motor_channel_init(struct sns_motor_channel *list,
+                       const struct aa_rx_sg *scenegraph);
 
 /**
  * Initialize reference elements and reference set.
  */
-AA_API void sns_motor_ref_init(const struct aa_rx_sg *scenegraph,
-                               struct sns_motor_channel *list,
-                               struct sns_motor_ref_set **ref_set,
-                               size_t n_handlers,
-                               struct sns_evhandler *handlers);
+AA_API void
+sns_motor_ref_init(const struct aa_rx_sg *scenegraph,
+                   struct sns_motor_channel *list,
+                   struct sns_motor_ref_set **ref_set, size_t n_handlers,
+                   struct sns_evhandler *handlers);
 
 /**
  * Initialize state channels
  */
-AA_API void sns_motor_state_init(const struct aa_rx_sg *scenegraph,
-                                 struct sns_motor_channel *list,
-                                 struct sns_motor_state_set **state_set,
-                                 size_t n_handlers,
-                                 struct sns_evhandler *handlers);
+AA_API void
+sns_motor_state_init(const struct aa_rx_sg *scenegraph,
+                     struct sns_motor_channel *list,
+                     struct sns_motor_state_set **state_set, size_t n_handlers,
+                     struct sns_evhandler *handlers);
 
 /**
  * Return the internal state object.
  */
-AA_API struct aa_ct_state *sns_motor_state_get(
-    struct sns_motor_state_set *state_set);
+AA_API struct aa_ct_state *
+sns_motor_state_get(struct sns_motor_state_set *state_set);
 
 /**
  * Return the number of channel elements in list
  */
-AA_API size_t sns_motor_channel_count(struct sns_motor_channel *list);
+AA_API size_t
+sns_motor_channel_count(struct sns_motor_channel *list);
 
 /**
  * Send out the values in state_set.
  *
  * @pre sns_motor_state_init() previously called on state_set
  */
-AA_API void sns_motor_state_put(struct sns_motor_state_set *state_set,
-                                const struct timespec *now, int64_t dur_ns);
+AA_API void
+sns_motor_state_put(struct sns_motor_state_set *state_set,
+                    const struct timespec *now, int64_t dur_ns);
 
 /**
  * Send out the values in ref_set.
  *
  * @pre sns_motor_ref_init() previously called on ref_set
  */
-AA_API void sns_motor_ref_put(struct sns_motor_ref_set *ref_set,
-                              const struct timespec *now, int64_t dur_ns);
+AA_API void
+sns_motor_ref_put(struct sns_motor_ref_set *ref_set, const struct timespec *now,
+                  int64_t dur_ns);
 
 #endif /* SNS_MOTOR_H */

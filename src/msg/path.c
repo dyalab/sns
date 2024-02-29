@@ -8,8 +8,8 @@
  * @function sns_msg_path_dense_alloc
  * @brief Returns a path msg with enough space allocated for n_steps and n_dof
  */
-struct sns_msg_path_dense *sns_msg_path_dense_alloc(uint32_t _n_steps,
-                                                    uint32_t _n_dof)
+struct sns_msg_path_dense *
+sns_msg_path_dense_alloc(uint32_t _n_steps, uint32_t _n_dof)
 {
     size_t size = sns_msg_path_dense_size(
         &(struct sns_msg_path_dense){.n_dof = _n_dof, .n_steps = _n_steps});
@@ -26,7 +26,8 @@ struct sns_msg_path_dense *sns_msg_path_dense_alloc(uint32_t _n_steps,
  * @function sns_path_dense_dump
  * @brief Outputs the path to a file (i.e. STDOUT) in a readable form
  */
-void sns_path_dense_dump(FILE *_out, const struct sns_msg_path_dense *_msg)
+void
+sns_path_dense_dump(FILE *_out, const struct sns_msg_path_dense *_msg)
 {
     // dump_header( _out, &_msg->header, "path_ref" );
 

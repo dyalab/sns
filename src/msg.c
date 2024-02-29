@@ -52,10 +52,9 @@
 #include <syslog.h>
 #include <time.h>
 
-enum ach_status sns_msg_local_get(ach_channel_t *chan, void **pbuf,
-                                  size_t *frame_size,
-                                  const struct timespec *ACH_RESTRICT abstime,
-                                  int options)
+enum ach_status
+sns_msg_local_get(ach_channel_t *chan, void **pbuf, size_t *frame_size,
+                  const struct timespec *ACH_RESTRICT abstime, int options)
 {
     aa_mem_region_t *reg = aa_mem_region_local_get();
     ach_status_t r;
@@ -74,7 +73,8 @@ enum ach_status sns_msg_local_get(ach_channel_t *chan, void **pbuf,
     return r;
 }
 
-void *sns_msg_plugin_symbol(const char *type, const char *symbol)
+void *
+sns_msg_plugin_symbol(const char *type, const char *symbol)
 {
     void *dl_lib;
     {
@@ -94,7 +94,8 @@ void *sns_msg_plugin_symbol(const char *type, const char *symbol)
 
 /*---- Headers ----*/
 
-static int ensure_time(struct timespec *now, const struct timespec *arg)
+static int
+ensure_time(struct timespec *now, const struct timespec *arg)
 {
     if (arg) {
         memcpy(now, arg, sizeof(*now));
@@ -104,8 +105,9 @@ static int ensure_time(struct timespec *now, const struct timespec *arg)
     }
 }
 
-int sns_msg_is_expired(const struct sns_msg_header *msg,
-                       const struct timespec *now_arg)
+int
+sns_msg_is_expired(const struct sns_msg_header *msg,
+                   const struct timespec *now_arg)
 {
     // FIXME: does this work with negative values?
     struct timespec now;
@@ -118,8 +120,9 @@ int sns_msg_is_expired(const struct sns_msg_header *msg,
     return (SNS_TIME_GT(now, then));
 }
 
-void sns_msg_set_time(struct sns_msg_header *msg, const struct timespec *arg,
-                      int64_t dur_nsec)
+void
+sns_msg_set_time(struct sns_msg_header *msg, const struct timespec *arg,
+                 int64_t dur_nsec)
 {
     struct timespec now;
     ensure_time(&now, arg);
@@ -128,7 +131,8 @@ void sns_msg_set_time(struct sns_msg_header *msg, const struct timespec *arg,
     msg->dur_nsec = dur_nsec;
 }
 
-void sns_msg_header_fill(struct sns_msg_header *msg)
+void
+sns_msg_header_fill(struct sns_msg_header *msg)
 {
     // lazily init
     if (!sns_cx.is_initialized) sns_init();
@@ -145,8 +149,8 @@ void sns_msg_header_fill(struct sns_msg_header *msg)
     strncpy(msg->ident, sns_cx.ident, SNS_HOSTNAME_LEN);
 }
 
-static void dump_header(FILE *out, const struct sns_msg_header *msg,
-                        const char *type)
+static void
+dump_header(FILE *out, const struct sns_msg_header *msg, const char *type)
 {
     int64_t h = msg->sec / (60 * 60), m = msg->sec / 60 - h * 60,
             s = msg->sec % 60;
@@ -159,9 +163,10 @@ static void dump_header(FILE *out, const struct sns_msg_header *msg,
 }
 
 /*---- vector ----*/
-void sns_msg_vector_plot_sample(const struct sns_msg_vector *msg,
-                                double **sample_ptr, char ***sample_labels,
-                                size_t *sample_size)
+void
+sns_msg_vector_plot_sample(const struct sns_msg_vector *msg,
+                           double **sample_ptr, char ***sample_labels,
+                           size_t *sample_size)
 {
     aa_mem_region_t *reg = aa_mem_region_local_get();
 
@@ -180,7 +185,8 @@ void sns_msg_vector_plot_sample(const struct sns_msg_vector *msg,
 
     if (sample_size) *sample_size = msg->header.n;
 }
-void sns_msg_vector_dump(FILE *out, const struct sns_msg_vector *msg)
+void
+sns_msg_vector_dump(FILE *out, const struct sns_msg_vector *msg)
 {
     dump_header(out, &msg->header, "vector");
     for (uint32_t i = 0; i < msg->header.n; i++) {
@@ -190,7 +196,8 @@ void sns_msg_vector_dump(FILE *out, const struct sns_msg_vector *msg)
 }
 
 /*---- transform ----*/
-void sns_msg_tf_dump(FILE *out, const struct sns_msg_tf *msg)
+void
+sns_msg_tf_dump(FILE *out, const struct sns_msg_tf *msg)
 {
     dump_header(out, &msg->header, "tf");
     for (uint32_t i = 0; i < msg->header.n; i++) {
@@ -203,8 +210,9 @@ void sns_msg_tf_dump(FILE *out, const struct sns_msg_tf *msg)
     fprintf(out, "\n");
 }
 
-void sns_msg_tf_plot_sample(const struct sns_msg_tf *msg, double **sample_ptr,
-                            char ***sample_labels, size_t *sample_size)
+void
+sns_msg_tf_plot_sample(const struct sns_msg_tf *msg, double **sample_ptr,
+                       char ***sample_labels, size_t *sample_size)
 {
     aa_mem_region_t *reg = aa_mem_region_local_get();
 
@@ -243,7 +251,8 @@ void sns_msg_tf_plot_sample(const struct sns_msg_tf *msg, double **sample_ptr,
     if (sample_size) *sample_size = 7 * msg->header.n;
 }
 
-void sns_msg_wt_tf_dump(FILE *out, const struct sns_msg_wt_tf *msg)
+void
+sns_msg_wt_tf_dump(FILE *out, const struct sns_msg_wt_tf *msg)
 {
     dump_header(out, &msg->header, "wt_tf");
     for (uint32_t i = 0; i < msg->header.n; i++) {
@@ -256,9 +265,9 @@ void sns_msg_wt_tf_dump(FILE *out, const struct sns_msg_wt_tf *msg)
     fprintf(out, "\n");
 }
 
-void sns_msg_wt_tf_plot_sample(const struct sns_msg_wt_tf *msg,
-                               double **sample_ptr, char ***sample_labels,
-                               size_t *sample_size)
+void
+sns_msg_wt_tf_plot_sample(const struct sns_msg_wt_tf *msg, double **sample_ptr,
+                          char ***sample_labels, size_t *sample_size)
 {
     aa_mem_region_t *reg = aa_mem_region_local_get();
     size_t size          = msg->header.n * 8;
@@ -299,7 +308,8 @@ void sns_msg_wt_tf_plot_sample(const struct sns_msg_wt_tf *msg,
     if (sample_size) *sample_size = size;
 }
 
-void sns_msg_tf_dx_dump(FILE *out, const struct sns_msg_tf_dx *msg)
+void
+sns_msg_tf_dx_dump(FILE *out, const struct sns_msg_tf_dx *msg)
 {
     dump_header(out, &msg->header, "tf_dx");
     for (uint32_t i = 0; i < msg->header.n; i++) {
@@ -318,7 +328,8 @@ void sns_msg_tf_dx_dump(FILE *out, const struct sns_msg_tf_dx *msg)
 }
 
 /*---- motor_ref ----*/
-const char *sns_motor_mode_str(enum sns_motor_mode mode)
+const char *
+sns_motor_mode_str(enum sns_motor_mode mode)
 {
     switch (mode) {
         case SNS_MOTOR_MODE_HALT:
@@ -347,12 +358,14 @@ const char *sns_motor_mode_str(enum sns_motor_mode mode)
 };
 
 /*---- motor_ref ----*/
-struct sns_msg_motor_ref *sns_msg_motor_ref_alloc(uint64_t n)
+struct sns_msg_motor_ref *
+sns_msg_motor_ref_alloc(uint64_t n)
 {
     return sns_msg_motor_ref_heap_alloc((uint32_t)n);
 }
 
-void sns_msg_motor_ref_dump(FILE *out, const struct sns_msg_motor_ref *msg)
+void
+sns_msg_motor_ref_dump(FILE *out, const struct sns_msg_motor_ref *msg)
 {
     dump_header(out, &msg->header, "motor_ref");
     const char *mode = "?";
@@ -386,9 +399,10 @@ void sns_msg_motor_ref_dump(FILE *out, const struct sns_msg_motor_ref *msg)
     fprintf(out, "\n");
 }
 
-void sns_msg_motor_ref_plot_sample(const struct sns_msg_motor_ref *msg,
-                                   double **sample_ptr, char ***sample_labels,
-                                   size_t *sample_size)
+void
+sns_msg_motor_ref_plot_sample(const struct sns_msg_motor_ref *msg,
+                              double **sample_ptr, char ***sample_labels,
+                              size_t *sample_size)
 {
     aa_mem_region_t *reg = aa_mem_region_local_get();
 
@@ -409,8 +423,8 @@ void sns_msg_motor_ref_plot_sample(const struct sns_msg_motor_ref *msg,
 }
 
 /*---- tag_motor_ref ----*/
-void sns_msg_tag_motor_ref_dump(FILE *out,
-                                const struct sns_msg_tag_motor_ref *msg)
+void
+sns_msg_tag_motor_ref_dump(FILE *out, const struct sns_msg_tag_motor_ref *msg)
 {
     dump_header(out, &msg->header, "tag_motor_ref");
     const char *mode = "?";
@@ -444,10 +458,10 @@ void sns_msg_tag_motor_ref_dump(FILE *out,
     fprintf(out, "\n");
 }
 
-void sns_msg_tag_motor_ref_plot_sample(const struct sns_msg_tag_motor_ref *msg,
-                                       double **sample_ptr,
-                                       char ***sample_labels,
-                                       size_t *sample_size)
+void
+sns_msg_tag_motor_ref_plot_sample(const struct sns_msg_tag_motor_ref *msg,
+                                  double **sample_ptr, char ***sample_labels,
+                                  size_t *sample_size)
 {
     aa_mem_region_t *reg = aa_mem_region_local_get();
 
@@ -469,11 +483,13 @@ void sns_msg_tag_motor_ref_plot_sample(const struct sns_msg_tag_motor_ref *msg,
 }
 
 /*---- motor_state ----*/
-struct sns_msg_motor_state *sns_msg_motor_state_alloc(uint32_t n)
+struct sns_msg_motor_state *
+sns_msg_motor_state_alloc(uint32_t n)
 {
     return sns_msg_motor_state_heap_alloc(n);
 }
-void sns_msg_motor_state_dump(FILE *out, const struct sns_msg_motor_state *msg)
+void
+sns_msg_motor_state_dump(FILE *out, const struct sns_msg_motor_state *msg)
 {
     dump_header(out, &msg->header, "motor_state");
     for (uint32_t i = 0; i < msg->header.n; i++) {
@@ -482,9 +498,10 @@ void sns_msg_motor_state_dump(FILE *out, const struct sns_msg_motor_state *msg)
     fprintf(out, "\n");
 }
 
-void sns_msg_motor_state_plot_sample(const struct sns_msg_motor_state *msg,
-                                     double **sample_ptr, char ***sample_labels,
-                                     size_t *sample_size)
+void
+sns_msg_motor_state_plot_sample(const struct sns_msg_motor_state *msg,
+                                double **sample_ptr, char ***sample_labels,
+                                size_t *sample_size)
 {
     aa_mem_region_t *reg = aa_mem_region_local_get();
 
@@ -511,7 +528,8 @@ void sns_msg_motor_state_plot_sample(const struct sns_msg_motor_state *msg,
 
 /*---- joystick ----*/
 
-void sns_msg_joystick_dump(FILE *out, const struct sns_msg_joystick *msg)
+void
+sns_msg_joystick_dump(FILE *out, const struct sns_msg_joystick *msg)
 {
     dump_header(out, &msg->header, "joystick");
     fprintf(out, "0x%08" PRIx64, msg->buttons);
@@ -521,9 +539,10 @@ void sns_msg_joystick_dump(FILE *out, const struct sns_msg_joystick *msg)
     fprintf(out, "\n");
 }
 
-void sns_msg_joystick_plot_sample(const struct sns_msg_joystick *msg,
-                                  double **sample_ptr, char ***sample_labels,
-                                  size_t *sample_size)
+void
+sns_msg_joystick_plot_sample(const struct sns_msg_joystick *msg,
+                             double **sample_ptr, char ***sample_labels,
+                             size_t *sample_size)
 {
     aa_mem_region_t *reg = aa_mem_region_local_get();
 

@@ -51,7 +51,8 @@
 
 static const char *opt_file = NULL;
 
-static void posarg(char *arg, int i)
+static void
+posarg(char *arg, int i)
 {
     if (0 == i) {
         opt_file = strdup(arg);
@@ -61,7 +62,8 @@ static void posarg(char *arg, int i)
     }
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
     /*-- Parse Options --*/
     {

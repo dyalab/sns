@@ -6,9 +6,11 @@
 #include <sns/event.h>
 
 /* Callback function for the event loop */
-static enum ach_status handle_state(void *cx, void *msg, size_t msg_size);
+static enum ach_status
+handle_state(void *cx, void *msg, size_t msg_size);
 
-int main(void)
+int
+main(void)
 {
     sns_init();
 
@@ -36,7 +38,8 @@ int main(void)
     sns_end();
 }
 
-static enum ach_status handle_state(void *cx_, void *msg_, size_t msg_size)
+static enum ach_status
+handle_state(void *cx_, void *msg_, size_t msg_size)
 {
     (void)cx_;
     struct sns_msg_motor_state *msg = (struct sns_msg_motor_state *)msg_;

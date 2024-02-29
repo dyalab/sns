@@ -54,10 +54,13 @@ struct cx {
     size_t n;
 };
 
-enum ach_status handle(void *cx, struct ach_channel *channel);
-enum ach_status periodic(void *cx);
+enum ach_status
+handle(void *cx, struct ach_channel *channel);
+enum ach_status
+periodic(void *cx);
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
     sns_init();
     struct aa_mem_rlist *names_list =
@@ -155,7 +158,8 @@ int main(int argc, char **argv)
     return 0;
 }
 
-enum ach_status handle(void *cx, struct ach_channel *channel)
+enum ach_status
+handle(void *cx, struct ach_channel *channel)
 {
     struct mplex_input *m = (struct mplex_input *)cx;
     SNS_LOG(LOG_DEBUG, "Event on channel %s\n", m->name);
@@ -203,7 +207,8 @@ enum ach_status handle(void *cx, struct ach_channel *channel)
     return ACH_OK;
 }
 
-enum ach_status periodic(void *_cx)
+enum ach_status
+periodic(void *_cx)
 {
     SNS_LOG(LOG_DEBUG, "periodic handler\n");
 

@@ -50,7 +50,8 @@
 int opt_priority  = LOG_INFO;
 char *opt_message = NULL;
 
-static void posarg(char *arg, int i)
+static void
+posarg(char *arg, int i)
 {
     if (0 == i) {
         opt_message = strdup(arg);
@@ -62,7 +63,8 @@ static void posarg(char *arg, int i)
     }
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
     sns_init();
 

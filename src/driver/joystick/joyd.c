@@ -129,7 +129,8 @@ static struct argp_option options[] = {
     {.name = NULL, .key = 0, .arg = NULL, .flags = 0, .doc = NULL}};
 
 /// argp parsing function
-static int parse_opt(int key, char *arg, struct argp_state *state);
+static int
+parse_opt(int key, char *arg, struct argp_state *state);
 /// argp program version
 const char *argp_program_version = "joyd-" PACKAGE_VERSION;
 /// argp program arguments documentation
@@ -145,7 +146,8 @@ static struct argp argp = {.options     = options,
                            .help_filter = NULL,
                            .argp_domain = NULL};
 
-static int parse_opt(int key, char *optarg, struct argp_state *state)
+static int
+parse_opt(int key, char *optarg, struct argp_state *state)
 {
     cx_t *cx = (cx_t *)state->input;
     switch (key) {
@@ -191,7 +193,8 @@ static int parse_opt(int key, char *optarg, struct argp_state *state)
 /**
  * Block, waiting for a mouse event
  */
-static int jach_read_to_msg(cx_t *cx)
+static int
+jach_read_to_msg(cx_t *cx)
 {
     int status = js_poll_state(cx->js);
     if (!status) {
@@ -217,13 +220,15 @@ static int jach_read_to_msg(cx_t *cx)
     return status;
 }
 
-static void timer_handler(int sig)
+static void
+timer_handler(int sig)
 {
     // do nothing, the read will get EINTR
     (void)sig;
 }
 
-static int create_timer(cx_t *cx)
+static int
+create_timer(cx_t *cx)
 {
     struct sigevent sev;
     struct itimerspec its;
@@ -259,7 +264,8 @@ static int create_timer(cx_t *cx)
     return 0;
 }
 
-static void jach_run(cx_t *cx)
+static void
+jach_run(cx_t *cx)
 {
     (void)cx;
     // main loop
@@ -290,7 +296,8 @@ static void jach_run(cx_t *cx)
 /* ---- */
 /* MAIN */
 /* ---- */
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
     static cx_t cx;
     memset(&cx, 0, sizeof(cx));

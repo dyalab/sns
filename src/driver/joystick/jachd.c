@@ -86,7 +86,8 @@ static struct argp_option options[] = {
     {.name = NULL, .key = 0, .arg = NULL, .flags = 0, .doc = NULL}};
 
 /// argp parsing function
-static int parse_opt(int key, char *arg, struct argp_state *state);
+static int
+parse_opt(int key, char *arg, struct argp_state *state);
 /// argp program version
 const char *argp_program_version = "jachd-0.0.1";
 /// argp program arguments documentation
@@ -96,7 +97,8 @@ static char doc[] = "reads from linux joystick and pushes out ach messages";
 /// argp object
 static struct argp argp = {options, parse_opt, args_doc, doc, NULL, NULL, NULL};
 
-static int parse_opt(int key, char *arg, struct argp_state *state)
+static int
+parse_opt(int key, char *arg, struct argp_state *state)
 {
     cx_t *cx = (cx_t *)state->input;
     switch (key) {
@@ -128,7 +130,8 @@ static int parse_opt(int key, char *arg, struct argp_state *state)
 /**
  * Block, waiting for a mouse event
  */
-static int jach_read_to_msg(Somatic__Joystick *msg, js_t *js)
+static int
+jach_read_to_msg(Somatic__Joystick *msg, js_t *js)
 {
     int status = js_poll_state(js);
     if (!status) {
@@ -142,13 +145,15 @@ static int jach_read_to_msg(Somatic__Joystick *msg, js_t *js)
     return status;
 }
 
-static void timer_handler(int sig)
+static void
+timer_handler(int sig)
 {
     // do nothing, the read will get EINTR
     (void)sig;
 }
 
-static int create_timer(cx_t *cx)
+static int
+create_timer(cx_t *cx)
 {
     struct sigevent sev;
     struct itimerspec its;
@@ -184,7 +189,8 @@ static int create_timer(cx_t *cx)
     return 0;
 }
 
-static void jach_run(cx_t *cx, Somatic__Joystick *msg, js_t *js)
+static void
+jach_run(cx_t *cx, Somatic__Joystick *msg, js_t *js)
 {
     somatic_d_event(&cx->d, SOMATIC__EVENT__PRIORITIES__NOTICE,
                     SOMATIC__EVENT__CODES__PROC_RUNNING, NULL, NULL);
@@ -217,7 +223,8 @@ static void jach_run(cx_t *cx, Somatic__Joystick *msg, js_t *js)
 /* ---- */
 /* MAIN */
 /* ---- */
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
     static cx_t cx;
     memset(&cx, 0, sizeof(cx));

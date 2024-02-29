@@ -92,15 +92,20 @@ struct cx {
     struct workspace_ctrl *workspace_ctrl;
 };
 
-static enum ach_status handle_js(void *cx, void *msg, size_t msg_size);
+static enum ach_status
+handle_js(void *cx, void *msg, size_t msg_size);
 
-static void teleop(struct cx *cx, struct sns_msg_joystick *msg);
+static void
+teleop(struct cx *cx, struct sns_msg_joystick *msg);
 
-static void teleop_wksp(struct cx *cx, struct sns_msg_joystick *msg);
+static void
+teleop_wksp(struct cx *cx, struct sns_msg_joystick *msg);
 
-static void halt(struct cx *cx);
+static void
+halt(struct cx *cx);
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
     struct cx cx = {0};
     /* parse options */
@@ -264,7 +269,8 @@ int main(int argc, char **argv)
     return 0;
 }
 
-enum ach_status handle_js(void *cx_, void *msg_, size_t msg_size)
+enum ach_status
+handle_js(void *cx_, void *msg_, size_t msg_size)
 {
     struct cx *cx = (struct cx *)cx_;
 
@@ -302,7 +308,8 @@ enum ach_status handle_js(void *cx_, void *msg_, size_t msg_size)
     return ACH_OK;
 }
 
-void teleop(struct cx *cx, struct sns_msg_joystick *msg)
+void
+teleop(struct cx *cx, struct sns_msg_joystick *msg)
 {
     /* Select axis to use based off of button map */
     for (struct joint_ctrl *J = cx->joint_ctrl; J; J = J->next) {
@@ -319,7 +326,8 @@ void teleop(struct cx *cx, struct sns_msg_joystick *msg)
     sns_motor_ref_put(cx->ref_set, &now, 1e9);
 }
 
-void teleop_wksp(struct cx *cx, struct sns_msg_joystick *msg)
+void
+teleop_wksp(struct cx *cx, struct sns_msg_joystick *msg)
 {
     cx->state_act = sns_motor_state_get(cx->state_set);
 
@@ -363,7 +371,8 @@ void teleop_wksp(struct cx *cx, struct sns_msg_joystick *msg)
     sns_motor_ref_put(cx->ref_set, &now, 1e9);
 }
 
-static void halt(struct cx *cx)
+static void
+halt(struct cx *cx)
 {
     for (size_t i = 0; i < cx->ref_set->n_q; i++) {
         cx->ref_set->meta[i].mode = SNS_MOTOR_MODE_HALT;

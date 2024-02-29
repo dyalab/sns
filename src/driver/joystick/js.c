@@ -50,7 +50,8 @@
 #define JOYSTICK_DIR    "/dev/input"
 #define JOYSTICK_FORMAT JOYSTICK_DIR "/js%d"
 
-static js_t *js_alloc()
+static js_t *
+js_alloc()
 {
     js_t *js;
 
@@ -62,7 +63,8 @@ static js_t *js_alloc()
     return js;
 }
 
-js_t *js_open(uint8_t idx)
+js_t *
+js_open(uint8_t idx)
 {
     char js_name[64];
 
@@ -83,7 +85,8 @@ fail:
     return NULL;
 }
 
-js_t *js_open_first()
+js_t *
+js_open_first()
 {
     DIR *inputs;
     js_t *js = NULL;
@@ -116,7 +119,8 @@ js_t *js_open_first()
     return js;  // Either a valid js or NULL
 }
 
-js_event_t *js_poll_event(js_t *js)
+js_event_t *
+js_poll_event(js_t *js)
 {
     static js_event_t event;
     assert(js != NULL);
@@ -128,7 +132,8 @@ js_event_t *js_poll_event(js_t *js)
     return &event;
 }
 
-int js_poll_state(js_t *js)
+int
+js_poll_state(js_t *js)
 {
     js_event_t *event;
     int more = 0;
@@ -158,7 +163,8 @@ int js_poll_state(js_t *js)
     return 0;
 }
 
-void js_close(js_t *js)
+void
+js_close(js_t *js)
 {
     assert(js != NULL);
 

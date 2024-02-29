@@ -52,22 +52,25 @@
 /*------------*/
 
 /* Make a beep */
-static void beep(int fd, int priority);
+static void
+beep(int fd, int priority);
 /* Process a message */
-static void process(int fd_beep, sns_msg_log_t *msg, size_t frame_size);
+static void
+process(int fd_beep, sns_msg_log_t *msg, size_t frame_size);
 
 static const char *opt_console = "/dev/tty0";
 
 /* ---- */
 /* MAIN */
 /* ---- */
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
     (void)argc;
     (void)argv;
 
     {
-        for (int c; - 1 != (c = getopt(argc, argv, "?" SNS_OPTSTRING));) {
+        for (int c; -1 != (c = getopt(argc, argv, "?" SNS_OPTSTRING));) {
             switch (c) {
                 SNS_OPTCASES_VERSION(
                     "snslogd",
@@ -132,7 +135,8 @@ int main(int argc, char **argv)
     return 0;
 }
 
-static void process(int fd_beep, sns_msg_log_t *msg, size_t frame_size)
+static void
+process(int fd_beep, sns_msg_log_t *msg, size_t frame_size)
 {
     if (SNS_MSG_CHECK_SIZE(log, msg, frame_size)) {
         beep(fd_beep, LOG_ERR);
@@ -154,7 +158,8 @@ static void process(int fd_beep, sns_msg_log_t *msg, size_t frame_size)
     }
 }
 
-static void beep(int fd, int priority)
+static void
+beep(int fd, int priority)
 {
     switch (priority) {
         case LOG_EMERG:

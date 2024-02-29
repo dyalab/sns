@@ -58,11 +58,16 @@
 
 struct sns_cx sns_cx = {0};
 
-void sns_set_ident(const char *ident) { sns_cx.ident = ident; }
+void
+sns_set_ident(const char *ident)
+{
+    sns_cx.ident = ident;
+}
 
 /* Redirection of stderr to sns log */
 #ifdef _GNU_SOURCE
-static ssize_t redir_write(void *cookie, const char *data, size_t n)
+static ssize_t
+redir_write(void *cookie, const char *data, size_t n)
 {
     (void)cookie;
     assert(1 == sizeof(char));
@@ -73,20 +78,23 @@ static ssize_t redir_write(void *cookie, const char *data, size_t n)
     return (ssize_t)n;
 }
 
-static ssize_t redir_read(void *c, char *buf, size_t size)
+static ssize_t
+redir_read(void *c, char *buf, size_t size)
 {
     (void)c;
     (void)buf;
     (void)size;
     return 0;
 }
-static int redir_close(void *c)
+static int
+redir_close(void *c)
 {
     (void)c;
     return 0;
 }
 
-static int redir_seek(void *c, off64_t *offset, int whence)
+static int
+redir_seek(void *c, off64_t *offset, int whence)
 {
     (void)c;
     (void)offset;
@@ -99,7 +107,8 @@ static cookie_io_functions_t redir_vtab = {.read  = &redir_read,
                                            .seek  = &redir_seek,
                                            .close = &redir_close};
 
-static void redir_stderr(void)
+static void
+redir_stderr(void)
 {
     FILE *tmp = fopencookie(NULL, "w", redir_vtab);
     if (NULL == tmp) {
@@ -116,7 +125,8 @@ static void redir_stderr(void)
 }
 #endif /*_GNU_SOURCE */
 
-void sns_init(void)
+void
+sns_init(void)
 {
     char *ptr = NULL;
 
@@ -188,7 +198,8 @@ void sns_init(void)
     sns_cx.is_initialized = 1;
 }
 
-void sns_init_rt(const struct sns_init_rt_opts *opts)
+void
+sns_init_rt(const struct sns_init_rt_opts *opts)
 {
     sns_init();
 
@@ -230,7 +241,8 @@ void sns_init_rt(const struct sns_init_rt_opts *opts)
 
 static ach_channel_t **cancel_chans = NULL;
 
-static void sighandler_cancel(int sig)
+static void
+sighandler_cancel(int sig)
 {
     (void)sig;
     if (SNS_LOG_PRIORITY(LOG_DEBUG)) {
@@ -255,7 +267,8 @@ static void sighandler_cancel(int sig)
     }
 }
 
-void sns_sigcancel(ach_channel_t **chan, const int *sig)
+void
+sns_sigcancel(ach_channel_t **chan, const int *sig)
 {
     /* register channel */
     if (chan) {
@@ -334,7 +347,8 @@ int sns_sig_term_default[] = {SIGHUP, SIGTERM, SIGINT, SIGUSR1, SIGUSR2, 0};
 /*     } */
 /* } */
 
-void sns_start()
+void
+sns_start()
 {
     // tell achcop parent we're starting
     if (getenv("ACHCOP")) {
@@ -366,9 +380,13 @@ void sns_start()
 
     Call this function before your daemon exists.
  */
-void sns_end() {}
+void
+sns_end()
+{
+}
 
-void sns_event(int level, int code, const char fmt[], ...)
+void
+sns_event(int level, int code, const char fmt[], ...)
 {
     (void)code;
     /* maybe stderr */
@@ -439,7 +457,8 @@ void sns_event(int level, int code, const char fmt[], ...)
 }
 
 /** Terminates the process when things get really bad.*/
-void sns_die()
+void
+sns_die()
 {
     /* tell achcop parent we're broken */
     if (getenv("ACHCOP")) {
@@ -452,7 +471,8 @@ void sns_die()
 }
 
 /** Opens a channel or dies if it can't */
-void sns_chan_open(ach_channel_t *chan, const char *name, ach_attr_t *attr)
+void
+sns_chan_open(ach_channel_t *chan, const char *name, ach_attr_t *attr)
 {
     ach_status_t r = ach_open(chan, name, attr);
     SNS_REQUIRE(ACH_OK == r, "Error opening channel `%s': %s\n", name,
@@ -463,7 +483,8 @@ void sns_chan_open(ach_channel_t *chan, const char *name, ach_attr_t *attr)
 }
 
 /** Closes a channel */
-void sns_chan_close(ach_channel_t *chan)
+void
+sns_chan_close(ach_channel_t *chan)
 {
     ach_status_t r = ach_close(chan);
     // not much to do if it fails, just log it
@@ -471,7 +492,8 @@ void sns_chan_close(ach_channel_t *chan)
               ach_result_to_string(r));
 }
 
-AA_API struct aa_rx_sg *sns_scene_load(void)
+AA_API struct aa_rx_sg *
+sns_scene_load(void)
 {
     const char *plugin = getenv("SNS_SCENE_PLUGIN");
     const char *name   = getenv("SNS_SCENE_NAME");

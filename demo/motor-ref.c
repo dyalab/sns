@@ -1,6 +1,7 @@
 #include <sns.h>
 
-int main(void)
+int
+main(void)
 {
     sns_init();
 

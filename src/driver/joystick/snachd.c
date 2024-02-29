@@ -91,7 +91,8 @@ static struct argp_option options[] = {
     {.name = NULL, .key = 0, .arg = NULL, .flags = 0, .doc = NULL}};
 
 /// argp parsing function
-static int parse_opt(int key, char *arg, struct argp_state *state);
+static int
+parse_opt(int key, char *arg, struct argp_state *state);
 /// argp program version
 const char *argp_program_version = "snachd v0.0.1";
 /// argp program arguments documention
@@ -101,7 +102,8 @@ static char doc[] = "reads from space navigator and pushes out ach messages";
 /// argp object
 static struct argp argp = {options, parse_opt, args_doc, doc, NULL, NULL, NULL};
 
-static int parse_opt(int key, char *arg, struct argp_state *state)
+static int
+parse_opt(int key, char *arg, struct argp_state *state)
 {
     (void)state;  // ignore unused parameter
     switch (key) {
@@ -127,7 +129,8 @@ static int parse_opt(int key, char *arg, struct argp_state *state)
 /**
  * Block, waiting for a mouse event
  */
-void snach_read_to_msg(Somatic__Joystick *msg, spnav_event *spnevent)
+void
+snach_read_to_msg(Somatic__Joystick *msg, spnav_event *spnevent)
 {
     spnav_wait_event(spnevent);
 
@@ -156,7 +159,8 @@ void snach_read_to_msg(Somatic__Joystick *msg, spnav_event *spnevent)
 /* ---- */
 /* MAIN */
 /* ---- */
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
     argp_parse(&argp, argc, argv, 0, NULL, NULL);
 

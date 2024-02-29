@@ -114,7 +114,8 @@ enum sns_prio {
  * Call this function at when the daemon first starts and before
  * accessing the sns_cx struct.
  */
-void sns_init(void);
+void
+sns_init(void);
 
 struct sns_init_rt_opts {
     enum sns_prio prio;
@@ -123,7 +124,8 @@ struct sns_init_rt_opts {
 /**
  * Make real-time
  */
-void sns_init_rt(const struct sns_init_rt_opts *opts);
+void
+sns_init_rt(const struct sns_init_rt_opts *opts);
 
 /**
  * Indicate that daemon is beginning its normal execuation.
@@ -132,14 +134,16 @@ void sns_init_rt(const struct sns_init_rt_opts *opts);
  * after it processes arguments and opens channels.
  *
  */
-void sns_start(void);
+void
+sns_start(void);
 
 /**
  * Destroy somatic daemon context struct.
  *
  * Call this function before your daemon exists.
  */
-void sns_end(void);
+void
+sns_end(void);
 
 /* -- Signal Handling -- */
 /**
@@ -155,7 +159,8 @@ void sns_end(void);
  * @see sns_sig_term_default
  *
  */
-void sns_sigcancel(ach_channel_t **chan, const int sig[]);
+void
+sns_sigcancel(ach_channel_t **chan, const int sig[]);
 
 /**
  * Signals which should terminate the process.
@@ -178,7 +183,8 @@ extern int sns_sig_term_default[];
  *
  * @see SNS_LOG
  */
-void sns_event(int level, int code, const char fmt[], ...)
+void
+sns_event(int level, int code, const char fmt[], ...)
 #ifdef __GNUC__
     __attribute__((format(printf, 3, 4)))
 #endif
@@ -187,7 +193,8 @@ void sns_event(int level, int code, const char fmt[], ...)
 /**
  * Terminate the process.
  */
-void sns_die(void);
+void
+sns_die(void);
 
 /**
  * Print an error message and terminate the process.
@@ -256,18 +263,21 @@ void sns_die(void);
  * @param[in]  name the name of the channel to open
  * @param[in]  attr attributes for ach_open()
  */
-void sns_chan_open(ach_channel_t *chan, const char *name, ach_attr_t *attr);
+void
+sns_chan_open(ach_channel_t *chan, const char *name, ach_attr_t *attr);
 
 /**
  * Close a channel
  */
-void sns_chan_close(ach_channel_t *chan);
+void
+sns_chan_close(ach_channel_t *chan);
 
 /*******************/
 /* Plugin Loading  */
 /*******************/
 
-AA_API struct aa_rx_sg *sns_scene_load(void);
+AA_API struct aa_rx_sg *
+sns_scene_load(void);
 
 /********************/
 /* Option Handling  */

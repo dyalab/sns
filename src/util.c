@@ -47,7 +47,8 @@
 #include <unistd.h>
 #include "sns.h"
 
-int sns_beep(int fd, double freq, double dur)
+int
+sns_beep(int fd, double freq, double dur)
 {
     // PC mainboard timer 8254 is clocked at 1.19 MHz
     static const double TICK_RATE  = 1193180;
@@ -61,7 +62,8 @@ int sns_beep(int fd, double freq, double dur)
     return 0;  // return write(fd, "\a", 1);
 }
 
-const char *sns_str_nullterm(const char *text, size_t n)
+const char *
+sns_str_nullterm(const char *text, size_t n)
 {
     if (0 == n) return "";
     size_t i = strnlen(text, n);
@@ -75,7 +77,8 @@ const char *sns_str_nullterm(const char *text, size_t n)
     }
 }
 
-unsigned long sns_parse_uhex(const char *arg, uint64_t max)
+unsigned long
+sns_parse_uhex(const char *arg, uint64_t max)
 {
     char *endptr;
     errno           = 0;
@@ -88,7 +91,8 @@ unsigned long sns_parse_uhex(const char *arg, uint64_t max)
     return u;
 }
 
-double sns_parse_float(const char *arg)
+double
+sns_parse_float(const char *arg)
 {
     double x;
     int r = sscanf(arg, "%lf", &x);
