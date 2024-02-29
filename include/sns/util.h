@@ -65,20 +65,32 @@ int sns_beep( int fd, double freq, double dur );
 
 #define SNS_BEEP_NOTE_A5    880
 
-#define SNS_BEEP_NOTE_A6    1760
 
-#define SNS_BEEP_NOTE_A7    3520
+int
+sns_beep(int fd, double freq, double dur);
 
-static inline struct timespec sns_time_add_ns( struct timespec ts, int64_t ns ) {
+#define SNS_BEEP_NOTE_A3  220
+#define SNS_BEEP_NOTE_A4  440
+#define SNS_BEEP_NOTE_A4S 466.16
+#define SNS_BEEP_NOTE_B4  493.88
+#define SNS_BEEP_NOTE_C5  523.25
+#define SNS_BEEP_NOTE_C5S 554.37
+#define SNS_BEEP_NOTE_A5  880
+#define SNS_BEEP_NOTE_A6  1760
+#define SNS_BEEP_NOTE_A7  3520
+
+static inline struct timespec
+sns_time_add_ns(struct timespec ts, int64_t ns)
+{
     int64_t ns1 = ns + ts.tv_nsec;
     struct timespec r;
     r.tv_nsec = ns1 % 1000000000;
-    r.tv_sec = ts.tv_sec + ns1 / 1000000000;
+    r.tv_sec  = ts.tv_sec + ns1 / 1000000000;
     return r;
 }
 
-static inline
-struct timespec sns_now(void)
+static inline struct timespec
+sns_now(void)
 {
     /* TODO: CLOCK_MONOTONIC is machine local
      * Look into Precision Time Protocol
@@ -88,17 +100,20 @@ struct timespec sns_now(void)
     return t;
 }
 
-const char *sns_str_nullterm( const char *text, size_t n );
+const char *
+sns_str_nullterm(const char *text, size_t n);
 
 /**
  * Parse an unsigned hexadecimal number
  */
-unsigned long sns_parse_uhex( const char *arg, uint64_t max );
+unsigned long
+sns_parse_uhex(const char *arg, uint64_t max);
 
 /**
  * Parse a floating point number
  */
-double sns_parse_float( const char *arg );
+double
+sns_parse_float(const char *arg);
 
 #ifdef __cplusplus
 }

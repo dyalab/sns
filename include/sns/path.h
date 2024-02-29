@@ -38,18 +38,22 @@ struct sns_msg_path_dense {
  * @function sns_msg_path_dense_size_tn
  * @brief Calculates the size of any message with its n_steps and n_dof
  */
-static inline size_t sns_msg_path_dense_size_tn( size_t _n_steps,
-                                               size_t _n_dofs ) {
-  static const struct sns_msg_path_dense *msg;
-  return sizeof( *msg ) - sizeof( msg->x[0] ) + sizeof( msg->x[0] )*_n_steps*_n_dofs;
+static inline size_t
+sns_msg_path_dense_size_tn(size_t _n_steps, size_t _n_dofs)
+{
+    static const struct sns_msg_path_dense *msg;
+    return sizeof(*msg) - sizeof(msg->x[0]) +
+           sizeof(msg->x[0]) * _n_steps * _n_dofs;
 }
 
 /**
  * @function sns_msg_path_dense_size
  * @brief Returns the size of the message according to its n_steps and n_dof
  */
-static inline size_t sns_msg_path_dense_size( const struct sns_msg_path_dense * _msg ) {
-  return sns_msg_path_dense_size_tn( _msg->n_steps, _msg->n_dof );
+static inline size_t
+sns_msg_path_dense_size(const struct sns_msg_path_dense *_msg)
+{
+    return sns_msg_path_dense_size_tn(_msg->n_steps, _msg->n_dof);
 }
 
 
@@ -57,14 +61,13 @@ static inline size_t sns_msg_path_dense_size( const struct sns_msg_path_dense * 
 /**
  * Allocate message
  */
-struct sns_msg_path_dense *sns_msg_path_dense_alloc( uint32_t _n_steps,
-                                                     uint32_t _n_dof );
+struct sns_msg_path_dense *
+sns_msg_path_dense_alloc(uint32_t _n_steps, uint32_t _n_dof);
 /**
  * print message
  */
-void sns_path_dense_dump( FILE* _out,
-                          const struct sns_msg_path_dense *_msg );
-
+void
+sns_path_dense_dump(FILE *_out, const struct sns_msg_path_dense *_msg);
 
 #ifdef __cplusplus
 }

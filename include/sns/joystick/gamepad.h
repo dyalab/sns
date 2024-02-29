@@ -40,7 +40,6 @@
  *
  */
 
-
 #ifndef GAMEPAD_H
 #define GAMEPAD_H
 
@@ -49,16 +48,16 @@
 // TODO: D-Pad detected as axes, really buttons
 
 enum gamepad_buttons {
-    GAMEPAD_BUTTON_A =           0x001,
-    GAMEPAD_BUTTON_B =           0X002,
-    GAMEPAD_BUTTON_X =           0X004,
-    GAMEPAD_BUTTON_Y =           0X008,
-    GAMEPAD_BUTTON_LB =          0X010,
-    GAMEPAD_BUTTON_RB =          0X020,
-    GAMEPAD_BUTTON_BACK =        0X040,
-    GAMEPAD_BUTTON_START =       0X080,
-    GAMEPAD_BUTTON_LOGO =        0X200,
-    GAMEPAD_BUTTON_LEFT_STICK =  0X200,
+    GAMEPAD_BUTTON_A           = 0x001,
+    GAMEPAD_BUTTON_B           = 0X002,
+    GAMEPAD_BUTTON_X           = 0X004,
+    GAMEPAD_BUTTON_Y           = 0X008,
+    GAMEPAD_BUTTON_LB          = 0X010,
+    GAMEPAD_BUTTON_RB          = 0X020,
+    GAMEPAD_BUTTON_BACK        = 0X040,
+    GAMEPAD_BUTTON_START       = 0X080,
+    GAMEPAD_BUTTON_LOGO        = 0X200,
+    GAMEPAD_BUTTON_LEFT_STICK  = 0X200,
     GAMEPAD_BUTTON_RIGHT_STICK = 0X400
 };
 
@@ -73,4 +72,4 @@ enum gamepad_axis {
     GAMEPAD_AXIS_DY = 7,
 };
 
-#endif // GAMEPAD_H
+#endif  // GAMEPAD_H
