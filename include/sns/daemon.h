@@ -57,7 +57,6 @@
 extern "C" {
 #endif
 
-
 /**
  * When verbosity level is zero, print of this or greater severity
  */
@@ -71,9 +70,9 @@ extern "C" {
 /**
  * Default size for core dumps
  */
-#define SNS_DEFAULT_CORE_SIZE (100 * (1<<20))
+#define SNS_DEFAULT_CORE_SIZE (100 * (1 << 20))
 
-
+// clang-format off
 /**
  * Context struct for an SNS daemon.
  *
@@ -91,6 +90,7 @@ typedef struct sns_cx {
     int verbosity;                   ///< how much output to give.  Add SNS_LOG_LEVEL to get priority
     FILE *stderr;                    ///< file handler for printing log/error messages
 } sns_cx_t;
+// clang-format on
 
 /**
  * The global SNS daemon context
@@ -101,11 +101,11 @@ extern struct sns_cx sns_cx;
  * Priories for realtime proceses
  */
 enum sns_prio {
-    SOMATIC_PRIO_NONE    = 0,  ///< not realtime
-    SNS_PRIO_UI          = 1,  ///< user interface
-    SNS_PRIO_CONTROL     = 15, ///< controller
-    SNS_PRIO_MOTOR       = 20, ///< motor
-    SNS_PRIO_MAX         = 30  ///< highest realtime priority
+    SOMATIC_PRIO_NONE = 0,   ///< not realtime
+    SNS_PRIO_UI       = 1,   ///< user interface
+    SNS_PRIO_CONTROL  = 15,  ///< controller
+    SNS_PRIO_MOTOR    = 20,  ///< motor
+    SNS_PRIO_MAX      = 30   ///< highest realtime priority
 };
 
 /**
@@ -114,8 +114,8 @@ enum sns_prio {
  * Call this function at when the daemon first starts and before
  * accessing the sns_cx struct.
  */
-void sns_init( void );
-
+void
+sns_init(void);
 
 struct sns_init_rt_opts {
     enum sns_prio prio;
@@ -124,7 +124,8 @@ struct sns_init_rt_opts {
 /**
  * Make real-time
  */
-void sns_init_rt( const struct sns_init_rt_opts *opts );
+void
+sns_init_rt(const struct sns_init_rt_opts *opts);
 
 /**
  * Indicate that daemon is beginning its normal execuation.
@@ -133,16 +134,16 @@ void sns_init_rt( const struct sns_init_rt_opts *opts );
  * after it processes arguments and opens channels.
  *
  */
-void sns_start( void );
+void
+sns_start(void);
 
 /**
  * Destroy somatic daemon context struct.
  *
  * Call this function before your daemon exists.
  */
-void sns_end( void );
-
-
+void
+sns_end(void);
 
 /* -- Signal Handling -- */
 /**
@@ -158,7 +159,8 @@ void sns_end( void );
  * @see sns_sig_term_default
  *
  */
-void sns_sigcancel( ach_channel_t **chan, const int sig[] );
+void
+sns_sigcancel(ach_channel_t **chan, const int sig[]);
 
 /**
  * Signals which should terminate the process.
@@ -181,7 +183,8 @@ extern int sns_sig_term_default[];
  *
  * @see SNS_LOG
  */
-void sns_event( int level, int code, const char fmt[], ... )
+void
+sns_event(int level, int code, const char fmt[], ...)
 #ifdef __GNUC__
     __attribute__((format(printf, 3, 4)))
 #endif
@@ -190,12 +193,17 @@ void sns_event( int level, int code, const char fmt[], ... )
 /**
  * Terminate the process.
  */
-void sns_die( void );
+void
+sns_die(void);
 
 /**
  * Print an error message and terminate the process.
  */
-#define SNS_DIE( ... ) { sns_event( LOG_CRIT, 0, __VA_ARGS__ ); sns_die(); }
+#define SNS_DIE(...)                         \
+    {                                        \
+        sns_event(LOG_CRIT, 0, __VA_ARGS__); \
+        sns_die();                           \
+    }
 
 /* Macros for to check and require conditions.
  * Other arguments are only evaluated if the test fails.
@@ -203,8 +211,10 @@ void sns_die( void );
 
 /** Check whether condition is satisfied and log if false
  */
-#define SNS_CHECK( test, priority, code, fmt, ... )                     \
-    if( !(test) ) { sns_event( priority, code, fmt, __VA_ARGS__); }
+#define SNS_CHECK(test, priority, code, fmt, ...)    \
+    if (!(test)) {                                   \
+        sns_event(priority, code, fmt, __VA_ARGS__); \
+    }
 
 /**
  * If test is false, then die
@@ -214,8 +224,10 @@ void sns_die( void );
  * The remainder of the arguments are printf format string and its
  * parameters.
  */
-#define SNS_REQUIRE( test, ... )                \
-    if( !(test) ) { SNS_DIE( __VA_ARGS__); }
+#define SNS_REQUIRE(test, ...) \
+    if (!(test)) {             \
+        SNS_DIE(__VA_ARGS__);  \
+    }
 
 /**
  * Evalute whether to log a message given priority.
@@ -224,7 +236,8 @@ void sns_die( void );
  * priority.
  *
  */
-#define SNS_LOG_PRIORITY( priority ) ((priority) <= SNS_LOG_LEVEL + sns_cx.verbosity)
+#define SNS_LOG_PRIORITY(priority) \
+    ((priority) <= SNS_LOG_LEVEL + sns_cx.verbosity)
 
 /**
  * Publish a log message
@@ -234,8 +247,10 @@ void sns_die( void );
  *
  * @param[in] priority a syslog logging priority
  */
-#define SNS_LOG( priority, ... )                                        \
-    if( SNS_LOG_PRIORITY(priority) ) { sns_event( priority, 0,  __VA_ARGS__); }
+#define SNS_LOG(priority, ...)               \
+    if (SNS_LOG_PRIORITY(priority)) {        \
+        sns_event(priority, 0, __VA_ARGS__); \
+    }
 
 /********************/
 /* Channel Handlers */
@@ -248,19 +263,20 @@ void sns_die( void );
  * @param[in]  name the name of the channel to open
  * @param[in]  attr attributes for ach_open()
  */
-void sns_chan_open( ach_channel_t *chan, const char *name,
-                           ach_attr_t *attr );
+void
+sns_chan_open(ach_channel_t *chan, const char *name, ach_attr_t *attr);
 
 /**
  * Close a channel
  */
-void sns_chan_close( ach_channel_t *chan );
+void
+sns_chan_close(ach_channel_t *chan);
 
 /*******************/
 /* Plugin Loading  */
 /*******************/
 
-AA_API struct aa_rx_sg*
+AA_API struct aa_rx_sg *
 sns_scene_load(void);
 
 /********************/
@@ -275,25 +291,28 @@ sns_scene_load(void);
 /**
  * The getopt() cases for common arguments to SNS daemons.
  */
-#define SNS_OPTCASES                     \
-    case 'v': sns_cx.verbosity++; break; \
-    case 'q': sns_cx.verbosity--; break;
+#define SNS_OPTCASES        \
+    case 'v':               \
+        sns_cx.verbosity++; \
+        break;              \
+    case 'q':               \
+        sns_cx.verbosity--; \
+        break;
 
-
-#define SNS_OPTCASES_VERSION(program, copyright, author)                \
-    SNS_OPTCASES                                                        \
-    case 'V':  {                                                        \
-        puts( program " " PACKAGE_VERSION "\n"                          \
-              "\n"                                                      \
-              copyright                                                 \
-              "This is free software; see the source for copying conditions.  There is NO\n" \
-              "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n" \
-              "\n"                                                      \
-              "Written by " author                                       \
-              "\n"                                                      \
-            );                                                          \
-        exit(EXIT_SUCCESS);                                             \
+// clang-format off
+#define SNS_OPTCASES_VERSION(program, copyright, author)                      \
+    SNS_OPTCASES                                                              \
+    case 'V': {                                                               \
+        puts(program " " PACKAGE_VERSION                                      \
+                     "\n"                                                     \
+                     "\n" copyright                                           \
+                     "This is free software; see the source for copying conditions.  There is NO\n"  \
+                     "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n" \
+                     "\n"                                                     \
+                     "Written by " author "\n");                              \
+        exit(EXIT_SUCCESS);                                                   \
     }
+// clang-format on
 
 #ifdef __cplusplus
 }
@@ -304,4 +323,4 @@ sns_scene_load(void);
 /* c-basic-offset: 4                         */
 /* indent-tabs-mode:  nil                    */
 /* End:                                      */
-#endif //SNS_DAEMON_H
+#endif  // SNS_DAEMON_H

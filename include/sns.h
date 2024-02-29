@@ -68,19 +68,22 @@
  */
 typedef double sns_real_t;
 
-#include <stdint.h>
-#include <time.h>
-#include <pthread.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <ach.h>
+// clang-format off
+// ach requires Amino to tell it what certain types are
 #include <amino-1.0/amino.h>
+#include <ach.h>
+// clang-format on
+#include <fcntl.h>
+#include <pthread.h>
+#include <signal.h>
+#include <stdint.h>
 #include <syslog.h>
+#include <time.h>
 
-#include "sns/util.h"
-#include "sns/msg.h"
 #include "sns/daemon.h"
+#include "sns/msg.h"
 #include "sns/path.h"
 #include "sns/sdh_tactile.h"
+#include "sns/util.h"
 
-#endif //SNS_H
+#endif  // SNS_H

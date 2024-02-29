@@ -42,30 +42,33 @@
 /** Author: Neil Dantam
  */
 
-#include "sns.h"
 #include <linux/kd.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include "sns.h"
 
-
-int sns_beep( int fd, double freq, double dur ) {
+int
+sns_beep(int fd, double freq, double dur)
+{
     // PC mainboard timer 8254 is clocked at 1.19 MHz
-    static const double TICK_RATE =  1193180;
-    static const double COUNT_RATE = 1000; // seems to work
-    int tone = (int)(TICK_RATE / freq);
-    int durticks = (int)(dur * COUNT_RATE);
-    int argument = tone | (durticks << 16);
-    if( ioctl(fd, KDMKTONE, argument) ) {
+    static const double TICK_RATE  = 1193180;
+    static const double COUNT_RATE = 1000;  // seems to work
+    int tone                       = (int)(TICK_RATE / freq);
+    int durticks                   = (int)(dur * COUNT_RATE);
+    int argument                   = tone | (durticks << 16);
+    if (ioctl(fd, KDMKTONE, argument)) {
         perror("ioctl");
     }
-    return 0;//return write(fd, "\a", 1);
+    return 0;  // return write(fd, "\a", 1);
 }
 
-const char *sns_str_nullterm( const char *text, size_t n ) {
-    if( 0 == n ) return "";
+const char *
+sns_str_nullterm(const char *text, size_t n)
+{
+    if (0 == n) return "";
     size_t i = strnlen(text, n);
-    if( n == i ) {
-        char *copy = (char *)aa_mem_region_local_alloc(n+1);
+    if (n == i) {
+        char *copy = (char *)aa_mem_region_local_alloc(n + 1);
         memcpy(copy, text, n);
         copy[n] = '\0';
         return copy;
@@ -74,21 +77,25 @@ const char *sns_str_nullterm( const char *text, size_t n ) {
     }
 }
 
-
-unsigned long sns_parse_uhex( const char *arg, uint64_t max ) {
+unsigned long
+sns_parse_uhex(const char *arg, uint64_t max)
+{
     char *endptr;
-    errno = 0;
-    unsigned long u  = strtoul( arg, &endptr, 16 );
+    errno           = 0;
+    unsigned long u = strtoul(arg, &endptr, 16);
 
-    SNS_REQUIRE( 0 == errno, "Invalid hexadecimal value: %s (%s)\n", arg, strerror(errno) );
-    SNS_REQUIRE( u <= max, "Argument %s too big\n", arg );
+    SNS_REQUIRE(0 == errno, "Invalid hexadecimal value: %s (%s)\n", arg,
+                strerror(errno));
+    SNS_REQUIRE(u <= max, "Argument %s too big\n", arg);
 
     return u;
 }
 
-double sns_parse_float( const char *arg ) {
+double
+sns_parse_float(const char *arg)
+{
     double x;
-    int r = sscanf(arg, "%lf", &x );
-    SNS_REQUIRE( 1 == r, "Couldn't parse floating point: %s\n", arg );
+    int r = sscanf(arg, "%lf", &x);
+    SNS_REQUIRE(1 == r, "Couldn't parse floating point: %s\n", arg);
     return x;
 }

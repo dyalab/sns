@@ -34,14 +34,12 @@
 #ifndef SNS_EVENT_H
 #define SNS_EVENT_H
 
-
 /**
  * @file  event.h
  * @brief Event loop for SNS daemons
  *
  * @author Neil T. Dantam
  */
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -77,10 +75,10 @@ struct sns_evhandler {
      * ACH_STALE_FRAMES if no new frames are read.  Any other
      * return value will terminate the event loop.
      */
-    enum ach_status (*handler)
-    ( void *context, void *msg, size_t msg_size );
+    enum ach_status (*handler)(void *context, void *msg, size_t msg_size);
 };
 
+// clang-format off
 /**
  * Event loop for handling multiple channels.
  *
@@ -105,14 +103,14 @@ struct sns_evhandler {
  *                             ACH_EV_O_PERIODIC_TIMEOUT
  */
 enum ach_status ACH_WARN_UNUSED
-sns_evhandle( struct sns_evhandler *handlers,
-              size_t n,
-              const struct timespec *period,
-              enum ach_status (*periodic_handler)(void *context),
-              void *periodic_context,
-              int *cancel_sigs,
-              int options );
-
+sns_evhandle(struct sns_evhandler *handlers,
+             size_t n,
+             const struct timespec *period,
+             enum ach_status (*periodic_handler)(void *context),
+             void *periodic_context,
+             int *cancel_sigs,
+             int options);
+// clang-format on
 #ifdef __cplusplus
 }
 #endif

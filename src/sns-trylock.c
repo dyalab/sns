@@ -40,53 +40,49 @@
  *
  */
 
-
-
-
 #include "config.h"
 
-
+#include <dlfcn.h>
 #include <getopt.h>
 #include <syslog.h>
-#include <dlfcn.h>
 #include "sns.h"
 
-int main( int argc, char **argv ) {
-    if( argc != 2 ) {
+int
+main(int argc, char **argv)
+{
+    if (argc != 2) {
         fprintf(stderr, "USAGE: sns-trylock LOCK-FILENAME\n");
         exit(EXIT_FAILURE);
     }
 
     /* Open File */
     const char *file = argv[1];
-    int fd = open(file, 0);
+    int fd           = open(file, 0);
 
-    if( fd < 0 ) {
-        if( ENOENT == errno ) {
+    if (fd < 0) {
+        if (ENOENT == errno) {
             exit(-1);
         } else {
-            fprintf(stderr, "couldn't open `%s': %s",
-                    file, strerror(errno));
+            fprintf(stderr, "couldn't open `%s': %s", file, strerror(errno));
             exit(EXIT_FAILURE);
         }
     }
 
     /* Test Lock */
-    int r = lockf( fd, F_TEST, 0 );
-    if( 0 == r ) {
+    int r = lockf(fd, F_TEST, 0);
+    if (0 == r) {
         /* unlocked */
         exit(-1);
-    } else if( (EACCES != errno && EAGAIN != errno) ) {
-        fprintf(stderr, "couldn't testing lock `%s': %s",
-                file, strerror(errno));
+    } else if ((EACCES != errno && EAGAIN != errno)) {
+        fprintf(stderr, "couldn't testing lock `%s': %s", file,
+                strerror(errno));
         exit(EXIT_FAILURE);
     } /* else daemon runs */
-
 
     /* Extract PID */
     FILE *fin = fdopen(fd, "r");
     int pid;
     fscanf(fin, "%d", &pid);
-    printf("%d\n",pid);
+    printf("%d\n", pid);
     return 0;
 }

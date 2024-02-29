@@ -31,51 +31,51 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 /** \file js.c
  *  \author Jon Olson
  */
 
-#include <poll.h>
-#include <stdio.h>
-#include <fcntl.h>
-#include <string.h>
-#include <stdlib.h>
+#include "include/sns/joystick/js.h"
 #include <assert.h>
 #include <dirent.h>
-#include <unistd.h>
+#include <fcntl.h>
+#include <poll.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
-#include "include/sns/joystick/js.h"
+#include <unistd.h>
 
-#define MAX_JOYSTICKS 256
-#define JOYSTICK_DIR "/dev/input"
+#define MAX_JOYSTICKS   256
+#define JOYSTICK_DIR    "/dev/input"
 #define JOYSTICK_FORMAT JOYSTICK_DIR "/js%d"
 
-static js_t *js_alloc() {
+static js_t *
+js_alloc()
+{
     js_t *js;
 
     js = (js_t *)malloc(sizeof(js_t));
-    if (js == NULL)
-        return NULL;
+    if (js == NULL) return NULL;
 
     memset(js, 0, sizeof(js_t));
 
     return js;
 }
 
-js_t *js_open(uint8_t idx) {
+js_t *
+js_open(uint8_t idx)
+{
     char js_name[64];
 
     snprintf(js_name, 63, JOYSTICK_FORMAT, idx);
-    js_name[63] = '\0'; // Never useful, but we're careful folk around here
+    js_name[63] = '\0';  // Never useful, but we're careful folk around here
 
     js_t *js = js_alloc();
-    if (js == NULL)
-        goto fail;
+    if (js == NULL) goto fail;
 
     js->fd = open(js_name, O_RDONLY);
-    if (js->fd < 0)
-        goto fail;
+    if (js->fd < 0) goto fail;
 
     return js;
 
@@ -85,27 +85,27 @@ fail:
     return NULL;
 }
 
-js_t *js_open_first() {
+js_t *
+js_open_first()
+{
     DIR *inputs;
     js_t *js = NULL;
 
     inputs = opendir("/dev/input");
-    if (inputs == NULL)
-        return NULL;
+    if (inputs == NULL) return NULL;
 
     struct dirent *input;
     do {
         input = readdir(inputs);
         if (input == NULL)
-            break; // Could just be end of list, but if we get end of list
-                   // without returning, that IS a failure
+            break;  // Could just be end of list, but if we get end of list
+                    // without returning, that IS a failure
 
         unsigned int idx;
         if (sscanf(input->d_name, JOYSTICK_DIR "/js%u", &idx) > 0) {
             // Match
             js = js_alloc();
-            if (js == NULL)
-                break;
+            if (js == NULL) break;
 
             js->fd = open(input->d_name, O_RDONLY);
             if (js->fd < 0) {
@@ -116,29 +116,31 @@ js_t *js_open_first() {
     } while (input != NULL);
 
     closedir(inputs);
-    return js; // Either a valid js or NULL
+    return js;  // Either a valid js or NULL
 }
 
-js_event_t *js_poll_event(js_t *js) {
+js_event_t *
+js_poll_event(js_t *js)
+{
     static js_event_t event;
     assert(js != NULL);
 
     ssize_t len = read(js->fd, &event, sizeof(event));
     // I hope linux doesn't give us half the struct on EINTR, that would suck
-    if (len < (int)sizeof(event))
-        return NULL;
+    if (len < (int)sizeof(event)) return NULL;
 
     return &event;
 }
 
-int js_poll_state(js_t *js) {
+int
+js_poll_state(js_t *js)
+{
     js_event_t *event;
     int more = 0;
     do {
         event = js_poll_event(js);
 
-        if (event == NULL)
-            return -1;
+        if (event == NULL) return -1;
 
         switch (event->type) {
             case JS_EVENT_AXIS:
@@ -152,17 +154,18 @@ int js_poll_state(js_t *js) {
         }
 
         struct pollfd fd;
-        fd.fd = js->fd;
-        fd.events = POLLIN;
+        fd.fd      = js->fd;
+        fd.events  = POLLIN;
         fd.revents = 0;
-        more = poll(&fd, 1, 0);
+        more       = poll(&fd, 1, 0);
     } while (more);
 
     return 0;
 }
 
-
-void js_close(js_t *js) {
+void
+js_close(js_t *js)
+{
     assert(js != NULL);
 
     close(js->fd);

@@ -40,45 +40,49 @@
  *
  */
 
-#include "config.h"
-#include "sns.h"
-#include <unistd.h>
-#include <syslog.h>
 #include <fcntl.h>
 #include <inttypes.h>
-
-
+#include <syslog.h>
+#include <unistd.h>
+#include "config.h"
+#include "sns.h"
 
 /*------------*/
 /* PROTOTYPES */
 /*------------*/
 
 /* Make a beep */
-static void beep( int fd, int priority );
+static void
+beep(int fd, int priority);
 /* Process a message */
-static void process( int fd_beep, sns_msg_log_t *msg, size_t frame_size );
-
+static void
+process(int fd_beep, sns_msg_log_t *msg, size_t frame_size);
 
 static const char *opt_console = "/dev/tty0";
 
 /* ---- */
 /* MAIN */
 /* ---- */
-int main( int argc, char **argv ) {
-    (void) argc; (void) argv;
+int
+main(int argc, char **argv)
+{
+    (void)argc;
+    (void)argv;
 
     {
-        for( int c; -1 != (c = getopt(argc, argv, "?" SNS_OPTSTRING)); ) {
-            switch(c) {
-                SNS_OPTCASES_VERSION("snslogd",
-                                     "Copyright (c) 2013, Georgia Tech Research Corporation\n",
-                                     "Neil T. Dantam")
-            case '?':
-                puts( "Usage: snslogd\n"
-                      "Handle logging for SNS daemons\n");
-                exit(EXIT_SUCCESS);
-            default:
-                SNS_DIE("Unknown Option: `%c'\n", c);
+        for (int c; -1 != (c = getopt(argc, argv, "?" SNS_OPTSTRING));) {
+            switch (c) {
+                SNS_OPTCASES_VERSION(
+                    "snslogd",
+                    "Copyright (c) 2013, Georgia Tech Research Corporation\n",
+                    "Neil T. Dantam")
+                case '?':
+                    puts(
+                        "Usage: snslogd\n"
+                        "Handle logging for SNS daemons\n");
+                    exit(EXIT_SUCCESS);
+                default:
+                    SNS_DIE("Unknown Option: `%c'\n", c);
             }
         }
     }
@@ -90,34 +94,37 @@ int main( int argc, char **argv ) {
     int fd_beep = open(opt_console, O_WRONLY);
 
     // open console
-    if( fd_beep < 0 ) {
-        syslog(LOG_ERR, "couldn't open `%s' to beep: %s\n",
-               opt_console, strerror(errno));
+    if (fd_beep < 0) {
+        syslog(LOG_ERR, "couldn't open `%s' to beep: %s\n", opt_console,
+               strerror(errno));
     }
 
     // cancel handlers
     {
         ach_channel_t *chans[] = {&sns_cx.chan_log, NULL};
-        sns_sigcancel( chans, sns_sig_term_default );
+        sns_sigcancel(chans, sns_sig_term_default);
     }
 
     sns_start();
 
-    while( !sns_cx.shutdown ) {
+    while (!sns_cx.shutdown) {
         size_t frame_size;
         void *buf;
-        ach_status_t r = sns_msg_local_get( &sns_cx.chan_log, &buf, &frame_size, NULL, ACH_O_WAIT );
-        switch(r) {
-        case ACH_MISSED_FRAME:
-            syslog(LOG_WARNING, "missed log frame: %s", ach_result_to_string(r));
-        case ACH_OK:
-            /* process message */
-            process( fd_beep, (sns_msg_log_t*)buf, frame_size );
-            break;
-        case ACH_CANCELED:
-            break;
-        default:
-            syslog(LOG_ALERT, "ach_get failed: %s", ach_result_to_string(r));
+        ach_status_t r = sns_msg_local_get(&sns_cx.chan_log, &buf, &frame_size,
+                                           NULL, ACH_O_WAIT);
+        switch (r) {
+            case ACH_MISSED_FRAME:
+                syslog(LOG_WARNING, "missed log frame: %s",
+                       ach_result_to_string(r));
+            case ACH_OK:
+                /* process message */
+                process(fd_beep, (sns_msg_log_t *)buf, frame_size);
+                break;
+            case ACH_CANCELED:
+                break;
+            default:
+                syslog(LOG_ALERT, "ach_get failed: %s",
+                       ach_result_to_string(r));
         }
         aa_mem_region_local_release();
     }
@@ -128,47 +135,51 @@ int main( int argc, char **argv ) {
     return 0;
 }
 
-static void process( int fd_beep, sns_msg_log_t *msg, size_t frame_size ) {
-    if( SNS_MSG_CHECK_SIZE(log, msg, frame_size) ) {
+static void
+process(int fd_beep, sns_msg_log_t *msg, size_t frame_size)
+{
+    if (SNS_MSG_CHECK_SIZE(log, msg, frame_size)) {
         beep(fd_beep, LOG_ERR);
-        syslog(LOG_ERR, "Invalid message size: %"PRIuPTR, frame_size);
+        syslog(LOG_ERR, "Invalid message size: %" PRIuPTR, frame_size);
         return;
     } /* else, log the message */
 
     /* Log it */
-    syslog( msg->priority, "[%s(%"PRIu64")@%s] %s",
-            sns_str_nullterm(msg->header.ident, sizeof(msg->header.from_host)),
-            msg->header.from_pid,
-            sns_str_nullterm(msg->header.from_host, sizeof(msg->header.from_host)),
-            sns_str_nullterm(msg->text, msg->header.n) );
+    syslog(
+        msg->priority, "[%s(%" PRIu64 ")@%s] %s",
+        sns_str_nullterm(msg->header.ident, sizeof(msg->header.from_host)),
+        msg->header.from_pid,
+        sns_str_nullterm(msg->header.from_host, sizeof(msg->header.from_host)),
+        sns_str_nullterm(msg->text, msg->header.n));
 
     /* Maybe beep */
-    if( fd_beep >= 0 ) {
+    if (fd_beep >= 0) {
         beep(fd_beep, msg->priority);
     }
 }
 
-static void beep( int fd, int priority ) {
-    switch(priority) {
-    case LOG_EMERG:
-        sns_beep(fd, SNS_BEEP_NOTE_A7, 3);
-        break;
-    case LOG_ALERT:
-        sns_beep(fd, SNS_BEEP_NOTE_A6, 2);
-        break;
-    case LOG_CRIT:
-        sns_beep(fd, SNS_BEEP_NOTE_A5, 1);
-        break;
-    case LOG_ERR:
-        sns_beep(fd, SNS_BEEP_NOTE_A4, .5);
-        break;
-    case LOG_WARNING:
-        sns_beep(fd, SNS_BEEP_NOTE_A3, .5);
-        break;
-    default: ;
+static void
+beep(int fd, int priority)
+{
+    switch (priority) {
+        case LOG_EMERG:
+            sns_beep(fd, SNS_BEEP_NOTE_A7, 3);
+            break;
+        case LOG_ALERT:
+            sns_beep(fd, SNS_BEEP_NOTE_A6, 2);
+            break;
+        case LOG_CRIT:
+            sns_beep(fd, SNS_BEEP_NOTE_A5, 1);
+            break;
+        case LOG_ERR:
+            sns_beep(fd, SNS_BEEP_NOTE_A4, .5);
+            break;
+        case LOG_WARNING:
+            sns_beep(fd, SNS_BEEP_NOTE_A3, .5);
+            break;
+        default:;
     }
 }
-
 
 /* static void update(cx_t *cx) { */
 /*     int r; */
@@ -176,7 +187,8 @@ static void beep( int fd, int priority ) {
 
 /*     // get message */
 /*     Somatic__Event *msg = SOMATIC_D_GET( &r, somatic__event, &cx->d, */
-/*                                          &cx->chan, &abstimeout, ACH_O_WAIT ); */
+/*                                          &cx->chan, &abstimeout, ACH_O_WAIT
+ * ); */
 /*     // validate */
 /*     // log */
 /*     if( msg ) { */
@@ -184,8 +196,10 @@ static void beep( int fd, int priority ) {
 /*         char *head = aa_mem_region_printf( reg, */
 /*                                        "[%s].(%s)", */
 /*                                        msg->ident ? msg->ident : "", */
-/*                                        msg->has_code ? somatic_event_code2str(msg->code) : "?" ); */
-/*         const char *type = msg->type ? aa_mem_region_printf(reg, ".(%s)", msg->type) : ""; */
+/*                                        msg->has_code ?
+ * somatic_event_code2str(msg->code) : "?" ); */
+/*         const char *type = msg->type ? aa_mem_region_printf(reg, ".(%s)",
+ * msg->type) : ""; */
 /*         const char *proc = */
 /*             ( msg->has_code && */
 /*               (SOMATIC__EVENT__CODES__PROC_STARTING == msg->code || */
@@ -196,7 +210,8 @@ static void beep( int fd, int priority ) {
 /*                                msg->has_pid ? msg->pid : 0, */
 /*                                msg->host ? msg->host : "?") : ""; */
 /*         const char *comment = */
-/*             msg->comment ? aa_mem_region_printf(reg, " %s", msg->comment) : ""; */
+/*             msg->comment ? aa_mem_region_printf(reg, " %s", msg->comment) :
+ * ""; */
 /*         int pri; */
 /*         if( msg->has_priority  && msg->priority <= LOG_DEBUG */
 /*             /\* unsigned, always true && msg->priority >= LOG_EMERG*\/ ) { */
