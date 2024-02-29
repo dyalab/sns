@@ -71,35 +71,21 @@ main(int argc, char **argv)
     int i              = 0;
     double opt_dur_sec = 1.0;
     for (int c; -1 != (c = getopt(argc, argv, "?s:pdRHPD" SNS_OPTSTRING));) {
+        // clang-format off
         switch (c) {
             SNS_OPTCASES_VERSION(
                 "snsref",
                 "Copyright (c) 2013, Georgia Tech Research Corporation\n"
                 "Copyright (c) 2017, Rice University\n",
                 "Neil T. Dantam")
-            case 'p':
-                opt_mode = SNS_MOTOR_MODE_POS;
-                break;
-            case 'd':
-                opt_mode = SNS_MOTOR_MODE_VEL;
-                break;
-            case 'R':
-                opt_mode = SNS_MOTOR_MODE_RESET;
-                break;
-            case 'H':
-                opt_mode = SNS_MOTOR_MODE_HALT;
-                break;
-            case 'P':
-                opt_mode = SNS_MOTOR_MODE_POS_OFFSET;
-                break;
-            case 'D':
-                opt_degrees = 1;
-                break;
-            case 's':
-                opt_dur_sec = atof(optarg);
-                break;
+            case 'p': opt_mode = SNS_MOTOR_MODE_POS;        break;
+            case 'd': opt_mode = SNS_MOTOR_MODE_VEL;        break;
+            case 'R': opt_mode = SNS_MOTOR_MODE_RESET;      break;
+            case 'H': opt_mode = SNS_MOTOR_MODE_HALT;       break;
+            case 'P': opt_mode = SNS_MOTOR_MODE_POS_OFFSET; break;
+            case 'D': opt_degrees = 1;                      break;
+            case 's': opt_dur_sec = atof(optarg);           break;
             case '?':
-                // clang-format off
                 puts(
                     "Usage: snsref [OPTIONS] channel x0 x1 ... xn\n"
                     "Send a motor referece command\n"
@@ -115,12 +101,12 @@ main(int argc, char **argv)
                     "  -V,                          Print program version\n"
                     "\n"
                     "Report bugs to <ntd@gatech.edu>");
-                // clang-format on
                 exit(EXIT_SUCCESS);
                 break;
             default:
                 posarg(optarg, i++);
         }
+        // clang-format on
     }
 
     while (optind < argc) {

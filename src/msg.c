@@ -201,11 +201,17 @@ sns_msg_tf_dump(FILE *out, const struct sns_msg_tf *msg)
 {
     dump_header(out, &msg->header, "tf");
     for (uint32_t i = 0; i < msg->header.n; i++) {
-        fprintf(out, "\t%d: [%f\t%f\t%f\t%f\t%f\t%f\t%f\t]\n", i,
-                msg->tf[i].r.data[0], msg->tf[i].r.data[1],
-                msg->tf[i].r.data[2], msg->tf[i].r.data[3],
-                msg->tf[i].v.data[0], msg->tf[i].v.data[1],
+        // clang-format off
+        fprintf(out, "\t%d: [%f\t%f\t%f\t%f\t%f\t%f\t%f\t]\n",
+                i,
+                msg->tf[i].r.data[0],
+                msg->tf[i].r.data[1],
+                msg->tf[i].r.data[2],
+                msg->tf[i].r.data[3],
+                msg->tf[i].v.data[0],
+                msg->tf[i].v.data[1],
                 msg->tf[i].v.data[2]);
+        // clang-format on
     }
     fprintf(out, "\n");
 }
@@ -234,17 +240,15 @@ sns_msg_tf_plot_sample(const struct sns_msg_tf *msg, double **sample_ptr,
         *sample_labels = (char **)aa_mem_region_alloc(
             reg, 7 * msg->header.n * sizeof((*sample_labels)[0]));
         for (size_t i = 0; i < msg->header.n; i++) {
-            (*sample_labels)[7 * i + 0] =
-                aa_mem_region_printf(reg, "q_x %d", i);
-            (*sample_labels)[7 * i + 1] =
-                aa_mem_region_printf(reg, "q_y %d", i);
-            (*sample_labels)[7 * i + 2] =
-                aa_mem_region_printf(reg, "q_z %d", i);
-            (*sample_labels)[7 * i + 3] =
-                aa_mem_region_printf(reg, "q_w %d", i);
+            // clang-format off
+            (*sample_labels)[7 * i + 0] = aa_mem_region_printf(reg, "q_x %d", i);
+            (*sample_labels)[7 * i + 1] = aa_mem_region_printf(reg, "q_y %d", i);
+            (*sample_labels)[7 * i + 2] = aa_mem_region_printf(reg, "q_z %d", i);
+            (*sample_labels)[7 * i + 3] = aa_mem_region_printf(reg, "q_w %d", i);
             (*sample_labels)[7 * i + 4] = aa_mem_region_printf(reg, "x %d", i);
             (*sample_labels)[7 * i + 5] = aa_mem_region_printf(reg, "y %d", i);
             (*sample_labels)[7 * i + 6] = aa_mem_region_printf(reg, "z %d", i);
+            // clang-format on
         }
     }
 
@@ -256,11 +260,18 @@ sns_msg_wt_tf_dump(FILE *out, const struct sns_msg_wt_tf *msg)
 {
     dump_header(out, &msg->header, "wt_tf");
     for (uint32_t i = 0; i < msg->header.n; i++) {
-        fprintf(out, "\t%d: (%f) [%f\t%f\t%f\t%f\t%f\t%f\t%f\t]\n", i,
-                msg->wt_tf[i].weight, msg->wt_tf[i].tf.r.data[0],
-                msg->wt_tf[i].tf.r.data[1], msg->wt_tf[i].tf.r.data[2],
-                msg->wt_tf[i].tf.r.data[3], msg->wt_tf[i].tf.v.data[0],
-                msg->wt_tf[i].tf.v.data[1], msg->wt_tf[i].tf.v.data[2]);
+        // clang-format off
+        fprintf(out, "\t%d: (%f) [%f\t%f\t%f\t%f\t%f\t%f\t%f\t]\n",
+                i,
+                msg->wt_tf[i].weight,
+                msg->wt_tf[i].tf.r.data[0],
+                msg->wt_tf[i].tf.r.data[1],
+                msg->wt_tf[i].tf.r.data[2],
+                msg->wt_tf[i].tf.r.data[3],
+                msg->wt_tf[i].tf.v.data[0],
+                msg->wt_tf[i].tf.v.data[1],
+                msg->wt_tf[i].tf.v.data[2]);
+        // clang-format on
     }
     fprintf(out, "\n");
 }
@@ -289,20 +300,18 @@ sns_msg_wt_tf_plot_sample(const struct sns_msg_wt_tf *msg, double **sample_ptr,
     if (sample_labels) {
         *sample_labels = (char **)aa_mem_region_alloc(
             reg, size * sizeof((*sample_labels)[0]));
+        // clang-format off
         for (size_t i = 0; i < msg->header.n; i++) {
             (*sample_labels)[8 * i + 0] = aa_mem_region_printf(reg, "wt %d", i);
-            (*sample_labels)[8 * i + 1] =
-                aa_mem_region_printf(reg, "q_x %d", i);
-            (*sample_labels)[8 * i + 2] =
-                aa_mem_region_printf(reg, "q_y %d", i);
-            (*sample_labels)[8 * i + 3] =
-                aa_mem_region_printf(reg, "q_z %d", i);
-            (*sample_labels)[8 * i + 4] =
-                aa_mem_region_printf(reg, "q_w %d", i);
+            (*sample_labels)[8 * i + 1] = aa_mem_region_printf(reg, "q_x %d", i);
+            (*sample_labels)[8 * i + 2] = aa_mem_region_printf(reg, "q_y %d", i);
+            (*sample_labels)[8 * i + 3] = aa_mem_region_printf(reg, "q_z %d", i);
+            (*sample_labels)[8 * i + 4] = aa_mem_region_printf(reg, "q_w %d", i);
             (*sample_labels)[8 * i + 5] = aa_mem_region_printf(reg, "x %d", i);
             (*sample_labels)[8 * i + 6] = aa_mem_region_printf(reg, "y %d", i);
             (*sample_labels)[8 * i + 7] = aa_mem_region_printf(reg, "z %d", i);
         }
+        // clang-format on
     }
 
     if (sample_size) *sample_size = size;
@@ -313,16 +322,25 @@ sns_msg_tf_dx_dump(FILE *out, const struct sns_msg_tf_dx *msg)
 {
     dump_header(out, &msg->header, "tf_dx");
     for (uint32_t i = 0; i < msg->header.n; i++) {
+        // clang-format off
         fprintf(out,
                 "\t%d: [%f\t%f\t%f\t%f]\t[%f\t%f\t%f\t]\n"
                 "\t    [%f\t%f\t%f\t|\t%f\t%f\t%f\t]\n",
-                i, msg->tf_dx[i].tf.r.data[0], msg->tf_dx[i].tf.r.data[1],
-                msg->tf_dx[i].tf.r.data[2], msg->tf_dx[i].tf.r.data[3],
-                msg->tf_dx[i].tf.v.data[0], msg->tf_dx[i].tf.v.data[1],
-                msg->tf_dx[i].tf.v.data[2], msg->tf_dx[i].dx.dv[0],
-                msg->tf_dx[i].dx.dv[1], msg->tf_dx[i].dx.dv[2],
-                msg->tf_dx[i].dx.omega[0], msg->tf_dx[i].dx.omega[1],
+                i,
+                msg->tf_dx[i].tf.r.data[0],
+                msg->tf_dx[i].tf.r.data[1],
+                msg->tf_dx[i].tf.r.data[2],
+                msg->tf_dx[i].tf.r.data[3],
+                msg->tf_dx[i].tf.v.data[0],
+                msg->tf_dx[i].tf.v.data[1],
+                msg->tf_dx[i].tf.v.data[2],
+                msg->tf_dx[i].dx.dv[0],
+                msg->tf_dx[i].dx.dv[1],
+                msg->tf_dx[i].dx.dv[2],
+                msg->tf_dx[i].dx.omega[0],
+                msg->tf_dx[i].dx.omega[1],
                 msg->tf_dx[i].dx.omega[2]);
+        // clang-format on
     }
     fprintf(out, "\n");
 }
@@ -331,29 +349,17 @@ sns_msg_tf_dx_dump(FILE *out, const struct sns_msg_tf_dx *msg)
 const char *
 sns_motor_mode_str(enum sns_motor_mode mode)
 {
+    // clang-format off
     switch (mode) {
-        case SNS_MOTOR_MODE_HALT:
-            return "halt";
-            break;
-        case SNS_MOTOR_MODE_POS:
-            return "position";
-            break;
-        case SNS_MOTOR_MODE_VEL:
-            return "velocity";
-            break;
-        case SNS_MOTOR_MODE_TORQ:
-            return "torque";
-            break;
-        case SNS_MOTOR_MODE_CUR:
-            return "current";
-            break;
-        case SNS_MOTOR_MODE_POS_OFFSET:
-            return "position offset";
-            break;
-        case SNS_MOTOR_MODE_RESET:
-            return "reset";
-            break;
+        case SNS_MOTOR_MODE_HALT:       return "halt";            break;
+        case SNS_MOTOR_MODE_POS:        return "position";        break;
+        case SNS_MOTOR_MODE_VEL:        return "velocity";        break;
+        case SNS_MOTOR_MODE_TORQ:       return "torque";          break;
+        case SNS_MOTOR_MODE_CUR:        return "current";         break;
+        case SNS_MOTOR_MODE_POS_OFFSET: return "position offset"; break;
+        case SNS_MOTOR_MODE_RESET:      return "reset";           break;
     }
+    // clang-format on
     return "?";
 };
 
@@ -369,29 +375,17 @@ sns_msg_motor_ref_dump(FILE *out, const struct sns_msg_motor_ref *msg)
 {
     dump_header(out, &msg->header, "motor_ref");
     const char *mode = "?";
+    // clang-format off
     switch (msg->mode) {
-        case SNS_MOTOR_MODE_HALT:
-            mode = "halt";
-            break;
-        case SNS_MOTOR_MODE_POS:
-            mode = "position";
-            break;
-        case SNS_MOTOR_MODE_VEL:
-            mode = "velocity";
-            break;
-        case SNS_MOTOR_MODE_TORQ:
-            mode = "torque";
-            break;
-        case SNS_MOTOR_MODE_CUR:
-            mode = "current";
-            break;
-        case SNS_MOTOR_MODE_POS_OFFSET:
-            mode = "position offset";
-            break;
-        case SNS_MOTOR_MODE_RESET:
-            mode = "reset";
-            break;
+        case SNS_MOTOR_MODE_HALT:       mode = "halt";            break;
+        case SNS_MOTOR_MODE_POS:        mode = "position";        break;
+        case SNS_MOTOR_MODE_VEL:        mode = "velocity";        break;
+        case SNS_MOTOR_MODE_TORQ:       mode = "torque";          break;
+        case SNS_MOTOR_MODE_CUR:        mode = "current";         break;
+        case SNS_MOTOR_MODE_POS_OFFSET: mode = "position offset"; break;
+        case SNS_MOTOR_MODE_RESET:      mode = "reset";           break;
     }
+    // clang-format on
     fprintf(out, "\t%s\n", mode);
     for (uint32_t i = 0; i < msg->header.n; i++) {
         fprintf(out, "\t%f", msg->u[i]);
@@ -428,29 +422,17 @@ sns_msg_tag_motor_ref_dump(FILE *out, const struct sns_msg_tag_motor_ref *msg)
 {
     dump_header(out, &msg->header, "tag_motor_ref");
     const char *mode = "?";
+    // clang-format off
     switch (msg->mode) {
-        case SNS_MOTOR_MODE_HALT:
-            mode = "halt";
-            break;
-        case SNS_MOTOR_MODE_POS:
-            mode = "position";
-            break;
-        case SNS_MOTOR_MODE_VEL:
-            mode = "velocity";
-            break;
-        case SNS_MOTOR_MODE_TORQ:
-            mode = "torque";
-            break;
-        case SNS_MOTOR_MODE_CUR:
-            mode = "current";
-            break;
-        case SNS_MOTOR_MODE_POS_OFFSET:
-            mode = "position offset";
-            break;
-        case SNS_MOTOR_MODE_RESET:
-            mode = "reset";
-            break;
+        case SNS_MOTOR_MODE_HALT:       mode = "halt";            break;
+        case SNS_MOTOR_MODE_POS:        mode = "position";        break;
+        case SNS_MOTOR_MODE_VEL:        mode = "velocity";        break;
+        case SNS_MOTOR_MODE_TORQ:       mode = "torque";          break;
+        case SNS_MOTOR_MODE_CUR:        mode = "current";         break;
+        case SNS_MOTOR_MODE_POS_OFFSET: mode = "position offset"; break;
+        case SNS_MOTOR_MODE_RESET:      mode = "reset";           break;
     }
+    // clang-format on
     fprintf(out, "\t%s\n", mode);
     for (uint32_t i = 0; i < msg->header.n; i++)
         fprintf(out, "\t(%f,%lu)", msg->u[i].val, msg->u[i].priority);
