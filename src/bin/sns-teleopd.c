@@ -78,9 +78,11 @@ struct cx {
 
     bool workspace;
     struct timespec switch_time;
+    struct timespec action_time;
 
     struct sns_motor_channel *ref_chan;
     struct sns_motor_channel *state_chan;
+    struct ach_channel action_chan;
 
     struct sns_motor_ref_set *ref_set;
     struct sns_motor_state_set *state_set;
@@ -115,10 +117,11 @@ main(int argc, char **argv)
     double opt_frequency = 100;
     const char *opt_chan_joystick = NULL;
     const char *opt_end_effector = NULL;
+    const char *opt_action_channel = NULL;
     bool workspace = false;
     {
         int c = 0;
-        while( (c = getopt( argc, argv, "u:y:j:e:Q:m:wh?" SNS_OPTSTRING)) != -1 ) {
+        while( (c = getopt( argc, argv, "a:u:y:j:e:Q:m:wh?" SNS_OPTSTRING)) != -1 ) {
             switch(c) {
                 SNS_OPTCASES_VERSION("sns-teleopd",
                                      "Copyright (c) 2015-2017, Rice University\n",
@@ -129,6 +132,9 @@ main(int argc, char **argv)
                 break;
             case 'y':
                 sns_motor_channel_push( optarg, &cx.state_chan );
+                break;
+            case 'a':
+                opt_action_channel = optarg;
                 break;
             case 'j':
                 opt_chan_joystick = optarg;
@@ -187,10 +193,28 @@ main(int argc, char **argv)
     SNS_REQUIRE(cx.ref_chan, "Need reference channel");
     SNS_REQUIRE(cx.state_chan, "Need state channel");
     SNS_REQUIRE(opt_chan_joystick, "Need joystick channel");
+    SNS_REQUIRE(opt_action_channel,
+              "Need channel to broadcast performed actions");
+
+    // Action Channel
+    sns_chan_open(&cx.action_chan, opt_action_channel, NULL);
 
     /* Load Scene Plugin */
+    fprintf(stderr, "Before limits\n");
     cx.scenegraph = sns_scene_load();
     aa_rx_sg_init(cx.scenegraph);
+
+    // Set some conservative bounds on motion
+    size_t n_q = aa_rx_sg_config_count(cx.scenegraph);
+    for (aa_rx_config_id i=0; i < n_q; i++) {
+        aa_rx_sg_set_limit_pos(cx.scenegraph,aa_rx_sg_config_name(cx.scenegraph, i), -2,2);
+        aa_rx_sg_set_limit_vel(cx.scenegraph,aa_rx_sg_config_name(cx.scenegraph, i), -10,10);
+        aa_rx_sg_set_limit_acc(cx.scenegraph,aa_rx_sg_config_name(cx.scenegraph, i), -10,10);
+    }
+
+    aa_rx_sg_init(cx.scenegraph);
+
+    fprintf(stderr, "Set limits\n");
 
     if( opt_end_effector ) {
         struct workspace_ctrl *work_ctrl = AA_NEW0(struct workspace_ctrl);
@@ -217,6 +241,7 @@ main(int argc, char **argv)
 
     struct timespec sw_time = {0,0};
     cx.switch_time = sw_time;
+    cx.action_time = sw_time;
 
     /* Reference (output) */
     sns_motor_ref_init(cx.scenegraph,
@@ -274,6 +299,22 @@ enum ach_status handle_js( void *cx_, void *msg_, size_t msg_size )
     struct cx *cx = (struct cx*)cx_;
     struct sns_msg_joystick *msg = (struct sns_msg_joystick *)msg_;
 
+    int action = msg->buttons;
+    if((action>>1) % 2){
+        struct timespec now;
+        struct timespec action_time = cx->action_time;
+        clock_gettime( ACH_DEFAULT_CLOCK, &now );
+        if(now.tv_sec > action_time.tv_sec ||
+           (now.tv_sec == action_time.tv_sec && now.tv_nsec > action_time.tv_nsec)){
+            clock_gettime( ACH_DEFAULT_CLOCK,&cx->action_time);
+            cx->action_time.tv_sec +=1;
+            struct sns_msg_text *msg = sns_msg_text_local_alloc(7);
+            strcpy(msg->text, "Action");
+            sns_msg_set_time(&msg->header, &now, 0);
+            sns_msg_text_put(&cx->action_chan, msg);
+        }
+    }
+
     /* Switch between joint and workspace control */
     if(msg->buttons % 2 && cx->workspace_ctrl && cx->joint_ctrl){
         struct timespec sw_time = cx->switch_time;
@@ -324,6 +365,7 @@ void teleop( struct cx *cx, struct sns_msg_joystick *msg )
     sns_motor_ref_put( cx->ref_set, &now, 1e9 );
 }
 
+
 void teleop_wksp( struct cx *cx, struct sns_msg_joystick *msg )
 {
     cx->state_act = sns_motor_state_get(cx->state_set);
@@ -360,6 +402,63 @@ void teleop_wksp( struct cx *cx, struct sns_msg_joystick *msg )
 
     /* Transform workspace velocities to joint angle velocities */
     aa_rx_wk_dx2dq(cx->workspace_ctrl->ssg, wk_opts, fk, &dx, &dq);
+    bool moving = false;
+    for(size_t i=0; i<n_c;i++){
+        if(fabs(q_subset[i])>1e-9) {
+            moving = true;
+            break;
+        }
+    }
+    
+    if(moving){
+        const struct aa_rx_sg* sg = aa_rx_sg_sub_sg(cx->workspace_ctrl->ssg);
+        double period = (double)cx->period.tv_nsec*1e-9+(double)cx->period.tv_sec;
+        // Respect position limits
+        {
+            double q_min, q_max, scale=1;
+            for(size_t i=0; i < n_c;i++){
+                if(fabs(q_subset[i])<1e-9) continue;
+                aa_rx_sg_get_limit_pos(sg, (aa_rx_config_id)i, &q_min, &q_max);
+                double next_pos = state_act->q[i]+ q_subset[i]*period;
+                next_pos = AA_MAX(q_min, next_pos);
+                next_pos = AA_MIN(q_max, next_pos);
+                scale = AA_MIN(scale, ((next_pos-state_act->q[i])/period)/q_subset[i]);
+                scale = AA_MAX(0, scale);
+            }
+            for(size_t i=0; i < n_c;i++) q_subset[i] *=scale;
+        }
+
+        // Respect velocity limits
+        {
+            double q_min, q_max, scale=1;
+            for(size_t i=0; i < n_c;i++){
+                if(fabs(q_subset[i])<1e-9) continue;
+                aa_rx_sg_get_limit_vel(sg, (aa_rx_config_id)i, &q_min, &q_max);
+                double next_vel = q_subset[i];
+                next_vel = AA_MAX(q_min, q_subset[i]);
+                next_vel = AA_MIN(q_max, q_subset[i]);
+                scale = AA_MIN(scale, next_vel/q_subset[i]);
+                scale = AA_MAX(0, scale);
+            }
+            for(size_t i=0; i < n_c;i++) q_subset[i] *=scale;
+        }
+
+        // Respect acceleration limits
+        {
+            double q_min, q_max, scale=1;
+            for(size_t i=0; i < n_c;i++){
+                if(fabs(q_subset[i])<1e-9) continue;
+                aa_rx_sg_get_limit_acc(sg, (aa_rx_config_id)i, &q_min, &q_max);
+                double cur_acc = (q_subset[i]-state_act->dq[i])/period;
+                cur_acc = AA_MAX(q_min, cur_acc);
+                cur_acc = AA_MIN(q_max, cur_acc);
+                scale = AA_MIN(scale, (cur_acc*period+state_act->dq[i])/q_subset[i]);
+                scale = AA_MAX(0, scale);
+            }
+            for(size_t i=0; i < n_c;i++) q_subset[i] *=scale;
+        }
+    }
+
 
     memcpy(cx->ref_set->u, dq.data, sizeof(double) * n_c);
 
