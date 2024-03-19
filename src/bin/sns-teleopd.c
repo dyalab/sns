@@ -206,10 +206,10 @@ main(int argc, char **argv)
 
     // Set some conservative bounds on motion
     size_t n_q = aa_rx_sg_config_count(cx.scenegraph);
-    for (aa_rx_config_id i=0; i < n_q; i++) {
-        aa_rx_sg_set_limit_pos(cx.scenegraph,aa_rx_sg_config_name(cx.scenegraph, i), -2,2);
-        aa_rx_sg_set_limit_vel(cx.scenegraph,aa_rx_sg_config_name(cx.scenegraph, i), -10,10);
-        aa_rx_sg_set_limit_acc(cx.scenegraph,aa_rx_sg_config_name(cx.scenegraph, i), -10,10);
+    for (size_t i=0; i < n_q; i++) {
+        aa_rx_sg_set_limit_pos(cx.scenegraph,aa_rx_sg_config_name(cx.scenegraph, (aa_rx_config_id)i), -2,2);
+        aa_rx_sg_set_limit_vel(cx.scenegraph,aa_rx_sg_config_name(cx.scenegraph, (aa_rx_config_id)i), -10,10);
+        aa_rx_sg_set_limit_acc(cx.scenegraph,aa_rx_sg_config_name(cx.scenegraph, (aa_rx_config_id)i), -10,10);
     }
 
     aa_rx_sg_init(cx.scenegraph);
@@ -238,7 +238,7 @@ main(int argc, char **argv)
 
     cx.workspace = workspace;
     if (workspace) SNS_REQUIRE( cx.workspace_ctrl, "End effector needed for workspace control.");
-
+    fprintf(stdout, "ready to go\n");
     struct timespec sw_time = {0,0};
     cx.switch_time = sw_time;
     cx.action_time = sw_time;
@@ -252,8 +252,10 @@ main(int argc, char **argv)
     size_t n_handlers = 1 + sns_motor_channel_count(cx.state_chan);
     cx.handlers = AA_NEW_AR(struct sns_evhandler, n_handlers);
 
+    fprintf(stdout, "motor chan\n");
 
     /* Joystick */
+    fprintf(stdout, "joystick chan %s\n", opt_chan_joystick);
     sns_chan_open( &cx.js_channel, opt_chan_joystick, NULL );
     cx.handlers[0].channel = &cx.js_channel;
     cx.handlers[0].context = &cx;
@@ -262,6 +264,8 @@ main(int argc, char **argv)
     for( struct joint_ctrl *J = cx.joint_ctrl; J; J = J->next ) {
         sns_motor_map_fill_id(cx.scenegraph,J->map);
     }
+    fprintf(stdout, "joystick\n");
+
 
     /* State */
     sns_motor_state_init(cx.scenegraph,
@@ -276,6 +280,7 @@ main(int argc, char **argv)
         cx.ref_set->u[i] = 0;
         cx.ref_set->meta[i].mode = SNS_MOTOR_MODE_VEL;
     }
+    fprintf(stdout, "made evhandle\n");
     enum ach_status r =
         sns_evhandle( cx.handlers, n_handlers,
                       &cx.period, NULL, NULL,
@@ -294,12 +299,17 @@ main(int argc, char **argv)
     return 0;
 }
 
+void compute_fk(struct cx *cx){
+    struct aa_dvec qv = AA_DVEC_INIT(cx->workspace_ctrl->n_q, cx->state_act->q, 1);
+    aa_rx_fk_all(cx->workspace_ctrl->fk, &qv);
+}
+
 enum ach_status handle_js( void *cx_, void *msg_, size_t msg_size )
 {
     struct cx *cx = (struct cx*)cx_;
     struct sns_msg_joystick *msg = (struct sns_msg_joystick *)msg_;
 
-    int action = msg->buttons;
+    uint64_t action = msg->buttons;
     if((action>>1) % 2){
         struct timespec now;
         struct timespec action_time = cx->action_time;
@@ -308,10 +318,10 @@ enum ach_status handle_js( void *cx_, void *msg_, size_t msg_size )
            (now.tv_sec == action_time.tv_sec && now.tv_nsec > action_time.tv_nsec)){
             clock_gettime( ACH_DEFAULT_CLOCK,&cx->action_time);
             cx->action_time.tv_sec +=1;
-            struct sns_msg_text *msg = sns_msg_text_local_alloc(7);
-            strcpy(msg->text, "Action");
-            sns_msg_set_time(&msg->header, &now, 0);
-            sns_msg_text_put(&cx->action_chan, msg);
+            struct sns_msg_text *m = sns_msg_text_local_alloc(7);
+            strcpy(m->text, "Action");
+            sns_msg_set_time(&m->header, &now, 0);
+            sns_msg_text_put(&cx->action_chan, m);
         }
     }
 
@@ -328,10 +338,14 @@ enum ach_status handle_js( void *cx_, void *msg_, size_t msg_size )
             clock_gettime( ACH_DEFAULT_CLOCK,&cx->switch_time);
             cx->switch_time.tv_sec +=1;
             struct aa_ct_state *state_act = cx->state_act;
-            size_t n_q  = cx->workspace_ctrl->n_q;
-            for( size_t i=0; i < n_q; i++){
-                printf("%lu: %f\n", i, state_act->q[i]);
-            }
+            fprintf(stdout, "Current motor angles:\n");
+            aa_dump_vec(stdout, state_act->q, state_act->n_q);
+            compute_fk(cx);
+            double q[7];
+            aa_rx_frame_id ee = aa_rx_sg_sub_frame_ee(cx->workspace_ctrl->ssg);
+            aa_rx_fk_get_abs_qutr(cx->workspace_ctrl->fk, ee , q);
+            fprintf(stdout, "Current workspace position of %s:\n", aa_rx_sg_frame_name(cx->scenegraph, ee));
+            aa_dump_vec(stdout, q, 7);
         }
     }
 
@@ -373,16 +387,7 @@ void teleop_wksp( struct cx *cx, struct sns_msg_joystick *msg )
 
     struct aa_rx_wk_opts *wk_opts = cx->workspace_ctrl->wk_opts;
     struct aa_ct_state *state_act = cx->state_act;
-    struct aa_rx_fk *fk           = cx->workspace_ctrl->fk;
-
     size_t n_c  = cx->workspace_ctrl->n_c;
-    size_t n_q  = cx->workspace_ctrl->n_q;
-
-    /* Create array of workspace velocities */
-    struct aa_dvec qv = AA_DVEC_INIT(n_q, state_act->q, 1);
-
-    /* Update the fk struct */
-    aa_rx_fk_all(fk, &qv);
 
     size_t n_x = 6;
     double workspace_vel[n_x];
@@ -401,7 +406,8 @@ void teleop_wksp( struct cx *cx, struct sns_msg_joystick *msg )
     struct aa_dvec dq= AA_DVEC_INIT(n_c, q_subset, 1);
 
     /* Transform workspace velocities to joint angle velocities */
-    aa_rx_wk_dx2dq(cx->workspace_ctrl->ssg, wk_opts, fk, &dx, &dq);
+    compute_fk(cx);
+    aa_rx_wk_dx2dq(cx->workspace_ctrl->ssg, wk_opts, cx->workspace_ctrl->fk, &dx, &dq);
     bool moving = false;
     for(size_t i=0; i<n_c;i++){
         if(fabs(q_subset[i])>1e-9) {
