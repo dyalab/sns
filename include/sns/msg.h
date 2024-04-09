@@ -442,6 +442,7 @@ sns_msg_matrix_size(const struct sns_msg_matrix *msg)
     return sns_msg_matrix_size_mn(msg->rows, msg->cols);
 }
 
+/**************/
 /* Transforms */
 /**************/
 
