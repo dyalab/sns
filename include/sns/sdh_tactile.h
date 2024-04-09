@@ -66,4 +66,9 @@ struct sns_msg_sdh_tactile {
 
 SNS_DEF_MSG_VAR(sns_msg_sdh_tactile, x);
 SNS_DEC_MSG_PLUGINS(sns_msg_sdh_tactile);
+
+#ifdef _cplusplus
+}
+#endif
+
 #endif  // SNS_SDH_TACTILE_H
