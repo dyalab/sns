@@ -7,14 +7,20 @@ noinst_PROGRAMS =
 bin_SCRIPTS =
 
 include_HEADERS = include/sns.h
-pkginclude_HEADERS =        \
-	include/sns/msg.h         \
-	include/sns/util.h        \
-	include/sns/daemon.h			\
-	include/sns/event.h			  \
-	include/sns/path.h        \
-	include/sns/sdh_tactile.h
+pkginclude_HEADERS =                   \
+	include/sns/daemon.h	       \
+	include/sns/event.h	       \
+	include/sns/joystick/gamepad.h \
+	include/sns/joystick/js.h      \
+	include/sns/motor.h            \
+	include/sns/msg.h              \
+	include/sns/path.h             \
+	include/sns/sdh_tactile.h      \
+	include/sns/util.h        
 
+
+## sns-daemon runner ##
+EXTRA_DIST += scripts/sns
 
 init_ddir = $(sysconfdir)/init.d
 init_d_SCRIPTS = scripts/sns
@@ -135,12 +141,35 @@ noinst_PROGRAMS += demo/multi-state-recv
 demo_multi_state_recv_SOURCES = demo/multi-state-recv.c
 demo_multi_state_recv_LDADD = libsns.la -lach -lamino
 
+## Joystick Helper Scripts ##
+EXTRA_DIST += \
+	scripts/sns-joyd-logitech-dual-action \
+	scripts/sns-joyd-logitech-f310
+
 bin_SCRIPTS += scripts/sns-joyd-logitech-f310 scripts/sns-joyd-logitech-dual-action
+
+EXTRA_DIST +=                            \
+	doc/md/acknowledgments.md.header \
+	doc/md/command.md	         \
+	doc/md/concepts.md               \
+	doc/md/copying.md.header         \
+	doc/md/daemon.md                 \
+	doc/md/download.md               \
+	doc/md/driver.md                 \
+	doc/md/mainpage.md               \
+	doc/md/tutorial-programming.md   \
+	doc/md/tutorial.md
 
 
 install-exec-hook:
 	ln -sf $(DESTDIR)$(init_ddir)/sns$(EXEEXT) \
 	       $(DESTDIR)$(bindir)/sns$(EXEEXT)
+
+distclean-local:
+	-rm -rf doc/manual                  \
+		doc/md/acknowledgments.md   \
+                doc/md/copying.md
+
 
 
 
@@ -159,9 +188,6 @@ doc/md/acknowledgments.md: $(top_srcdir)/AUTHORS $(top_srcdir)/doc/md/acknowledg
 
 
 if HAVE_DOXYGEN
-
-
-
 doxygen: Doxyfile doc/md/copying.md doc/md/acknowledgments.md
 	$(DOXYGEN)
 
@@ -292,7 +318,7 @@ doc/manual/img/priority.png: doc/tex/priority.tex doc/tex/sns.sty
 	gs -q -dNOPAUSE -dBATCH -sDEVICE=pngalpha -r300 -dEPSCrop -sOutputFile=$@ priority-crop.pdf
 
 
-EXTRA_DIST += $(html_mans) $(html_imgs)
+EXTRA_DIST += $(html_mans) $(html_imgs) doc/tex
 doxygen: $(html_mans) $(html_imgs) doc/daemon.md doc/command.md doc/driver.md doc/tutorial-programming.md
 
 

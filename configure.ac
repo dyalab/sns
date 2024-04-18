@@ -1,10 +1,9 @@
-#                                               -*- Autoconf -*-
+# -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.65])
-AC_INIT([sns], [1.1.0], [ntd@rice.edu])
-AM_INIT_AUTOMAKE([subdir-objects])
-m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+AC_PREREQ([2.71])
+AC_INIT([sns],[1.1.0],[ndantam@mines.edu])
+AM_INIT_AUTOMAKE([-Wall subdir-objects])
 AC_CONFIG_SRCDIR([include/sns.h])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
@@ -13,9 +12,8 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_USE_SYSTEM_EXTENSIONS
 AC_PROG_CXX
 AC_PROG_CC
-AC_PROG_CC_C99
 AM_PROG_AR
-AC_PROG_LIBTOOL
+LT_INIT
 
 
 AC_C_RESTRICT
@@ -73,9 +71,6 @@ AC_SEARCH_LIBS([dgesvd_],[lapack])
 m4_ifdef([AX_CFLAGS_WARN_ALL],
          [AX_CFLAGS_WARN_ALL])
 
-dnl APPEND_FLAG( [FLAG] )
-dnl Check if FLAG is supported, and if so, add it
-
 dnl The AX_CHECK_COMPILER_FLAGS maco was renamed to AX_CHECK_COMPILE_FLAG
 dnl Checking for both versions
 m4_ifdef([AX_CHECK_COMPILE_FLAG],
@@ -99,8 +94,7 @@ m4_ifdef([APPEND_FLAG],
 dnl Fix the bad default for ar flags in automake
 AR_FLAGS="cr"
 
-dnl # Doxygen
-
+## Doxygen ##
 AC_ARG_WITH([doxygen],
             AS_HELP_STRING([--without-doxygen], [Disable doxygen support]),
             [],
@@ -145,39 +139,7 @@ PKG_CHECK_MODULES([SDL2],
 AC_SUBST([SDL2_CFLAGS])
 AC_SUBST([SDL2_LIBS])
 
-dnl # Check for programs to make documentation
-dnl AC_CHECK_PROGS([HELP2MAN], [help2man])
-dnl AC_CHECK_PROGS([MAN2HTML], [man2html])
-dnl AC_CHECK_PROGS([DB2HTML], [db2html])
-dnl AM_CONDITIONAL([HAVE_HELP2MAN], [test x$HELP2MAN != x])
-dnl AM_CONDITIONAL([HAVE_MAN2HTML], [test x$MAN2HTML != x])
-dnl AM_CONDITIONAL([HAVE_DB2HTML],  [test x$DB2HTML != x])
-
-dnl # Check if we already have docs (from tarball)
-dnl AC_CHECK_FILE( [$srcdir/doc/man/ach.1],           [FOUND_MANPAGES=yes])
-dnl AC_CHECK_FILE( [$srcdir/doc/man/ach.html],        [FOUND_MANHTML=yes])
-dnl AC_CHECK_FILE( [$srcdir/doc/manual/ach-manual.html], [FOUND_MANUAL=yes])
-
-dnl # If we can make the docs or already have them, then we can install them
-dnl AM_CONDITIONAL([HAVE_MANPAGES], [test x$HELP2MAN != x -o x$FOUND_MANPAGES = xyes])
-dnl AM_CONDITIONAL([HAVE_MANHTML],  [test '(' x$HELP2MAN != x -a x$MAN2HTML != x ')' -o x$FOUND_MANHTML = xyes])
-dnl AM_CONDITIONAL([HAVE_MANUAL],   [test x$DB2HTML != x -o x$FOUND_MANUAL = xyes])
-
-dnl # Python
-dnl AC_ARG_WITH([python],
-dnl         AS_HELP_STRING([--with-python], [Enable python support]))
-
-dnl AS_IF([test "x$with_python" = "xyes"],[
-dnl     AM_PATH_PYTHON( [2.6],
-dnl                     [AX_PYTHON_DEVEL],
-dnl                     [PYTHON_VERSION=none] )
-dnl     ],
-dnl     [PYTHON_VERSION=none])
-
-dnl AM_CONDITIONAL([HAVE_PYTHON],   [test x: != x$PYTHON -a x != x$PYTHON])
-
-CXXFLAGS="$CFLAGS"
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile share/sns.pc Doxyfile])
 
 AC_OUTPUT
 
@@ -188,9 +150,3 @@ AC_MSG_NOTICE([C compiler:        $CC])
 AC_MSG_NOTICE([C++ compiler:      $CXX])
 AC_MSG_NOTICE([CFLAGS:            $CFLAGS])
 AC_MSG_NOTICE([C++ FLAGS:         $CXXFLAGS])
-
-dnl AC_MSG_NOTICE([])
-dnl AC_MSG_NOTICE([CONFIGURATION SUMMARY])
-dnl AC_MSG_NOTICE([=====================])
-dnl AC_MSG_NOTICE([PREFIX:          $prefix])
-dnl AC_MSG_NOTICE([PYTHON VERSION:  $PYTHON_VERSION])

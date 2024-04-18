@@ -2,7 +2,7 @@
  * Copyright (c) 2013, Georgia Tech Research Corporation
  * All rights reserved.
  *
- * Author(s): Neil T. Dantam <ntd@gatech.edu>
+ * Author(s): Neil T. Dantam <ndantam@mines.edu>
  * Georgia Tech Humanoid Robotics Lab
  * Under Direction of Prof. Mike Stilman <mstilman@cc.gatech.edu>
  *
@@ -40,6 +40,16 @@
 
 #ifndef SNS_MSG_H
 #define SNS_MSG_H
+
+#include <fcntl.h>
+#include <stdint.h>
+#include <time.h>
+// The above files need to come before ach
+#include <ach.h>
+#include <ach/generic.h>
+#include <amino.h>
+#include <amino/tf.h>
+#include <sns/util.h>
 
 /**
  * Returns true if struct timespec x is greater than struct timespec y

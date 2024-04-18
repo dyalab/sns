@@ -273,8 +273,10 @@ sns_sigcancel(ach_channel_t **chan, const int *sig)
     /* register channel */
     if (chan) {
         size_t i;
+        // clang-format off
         for (i = 0; NULL != chan[i]; i++)
-            ;
+        ;
+        // clang-format on
         i++;  // one more for the null
         cancel_chans = (ach_channel_t **)realloc(cancel_chans,
                                                  i * sizeof(cancel_chans[0]));

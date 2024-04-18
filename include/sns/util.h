@@ -2,7 +2,7 @@
  * Copyright (c) 2013, Georgia Tech Research Corporation
  * All rights reserved.
  *
- * Author(s): Neil T. Dantam <ntd@gatech.edu>
+ * Author(s): Neil T. Dantam <ndantam@mines.edu>
  * Georgia Tech Humanoid Robotics Lab
  * Under Direction of Prof. Mike Stilman <mstilman@cc.gatech.edu>
  *
@@ -41,6 +41,8 @@
 #ifndef SNS_UTIL_H
 #define SNS_UTIL_H
 
+#include <time.h>
+
 /**
  * @file  event.h
  * @brief Utility functions for SNS daemons
@@ -51,6 +53,26 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * Max length for hostnames in SNS messages
+ */
+#define SNS_HOSTNAME_LEN 8
+
+/**
+ * Max length for daemon identifier in SNS messages
+ */
+#define SNS_IDENT_LEN 8
+
+/**
+ * Max length for daemon backtraces
+ */
+#define SNS_BACKTRACE_LEN 32
+
+/**
+ * Type to use for floating point values.
+ */
+typedef double sns_real_t;
 
 int
 sns_beep(int fd, double freq, double dur);

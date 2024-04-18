@@ -99,3 +99,6 @@ Makefile.in
 /demo/.libs/
 /demo/multi-ref-send
 /demo/multi-state-recv
+sns.pc
+*~
+Doxyfile
