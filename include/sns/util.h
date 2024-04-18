@@ -2,7 +2,7 @@
  * Copyright (c) 2013, Georgia Tech Research Corporation
  * All rights reserved.
  *
- * Author(s): Neil T. Dantam <ntd@gatech.edu>
+ * Author(s): Neil T. Dantam <ndantam@mines.edu>
  * Georgia Tech Humanoid Robotics Lab
  * Under Direction of Prof. Mike Stilman <mstilman@cc.gatech.edu>
  *
@@ -80,12 +80,12 @@ sns_beep(int fd, double freq, double dur);
 #define SNS_BEEP_NOTE_A3  220
 #define SNS_BEEP_NOTE_A4  440
 #define SNS_BEEP_NOTE_A4S 466.16
-#define SNS_BEEP_NOTE_A5  880
-#define SNS_BEEP_NOTE_A6  1760
-#define SNS_BEEP_NOTE_A7  3520
 #define SNS_BEEP_NOTE_B4  493.88
 #define SNS_BEEP_NOTE_C5  523.25
 #define SNS_BEEP_NOTE_C5S 554.37
+#define SNS_BEEP_NOTE_A5  880
+#define SNS_BEEP_NOTE_A6  1760
+#define SNS_BEEP_NOTE_A7  3520
 
 static inline struct timespec
 sns_time_add_ns(struct timespec ts, int64_t ns)

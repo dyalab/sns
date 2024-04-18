@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.71])
-AC_INIT([sns],[1.1.0],[ntd@rice.edu])
+AC_INIT([sns],[1.1.0],[ndantam@mines.edu])
 AM_INIT_AUTOMAKE([-Wall subdir-objects])
 AC_CONFIG_SRCDIR([include/sns.h])
 AC_CONFIG_HEADERS([config.h])

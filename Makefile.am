@@ -19,7 +19,7 @@ pkginclude_HEADERS =                   \
 	include/sns/util.h        
 
 
-## sns-deamon runner ##
+## sns-daemon runner ##
 EXTRA_DIST += scripts/sns
 
 init_ddir = $(sysconfdir)/init.d

@@ -1,9 +1,10 @@
 /*
  * Copyright (c) 2013-2014, Georgia Tech Research Corporation
  * Copyright (c) 2015, Rice University
+ * Copyright (c) 2024, Colorado School of Mines
  * All rights reserved.
  *
- * Author(s): Neil T. Dantam <ntd@gatech.edu>
+ * Author(s): Neil T. Dantam <ndantam@mines.edu>
  * Georgia Tech Humanoid Robotics Lab
  * Under Direction of Prof. Mike Stilman <mstilman@cc.gatech.edu>
  *

@@ -3,7 +3,7 @@
  * Copyright (c) 2023, Colorado School of Mines
  * All rights reserved.
  *
- * Author(s): Neil T. Dantam <ntd@gatech.edu>
+ * Author(s): Neil T. Dantam <ndantam@mines.edu>
  *
  *
  * This file is provided under the following "BSD-style" License:
