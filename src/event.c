@@ -78,8 +78,8 @@ static void
 check_evhandle_result(enum ach_status r)
 {
     SNS_REQUIRE(ach_status_match(r, ACH_MASK_OK | ACH_MASK_CANCELED),
-                "asdf Could not handle events: %s, %s\n",
-                ach_result_to_string(r), strerror(errno));
+                "Could not handle event: %s, %s\n", ach_result_to_string(r),
+                strerror(errno));
 }
 enum ach_status ACH_WARN_UNUSED
 sns_evhandle(struct sns_evhandler *handlers, size_t n,
