@@ -76,16 +76,25 @@ struct sns_evhandler {
      *
      * msg is deallocated after handler returns.
      *
-     * Handler should return ACH_OK when new frames are read, or
-     * ACH_STALE_FRAMES if no new frames are read.  Any other
-     * return value will terminate the event loop.
+     * Handler should return ACH_OK when everything is fine.  Returning
+     * anything other than ACH_OK will terminate the event loop. The event loop
+     * also terminates if `sns_cx.shutdown=1`.
      */
     enum ach_status (*handler)(void *context, void *msg, size_t msg_size);
 };
 
-// clang-format off
 /**
  * Event loop for handling multiple channels.
+ *
+ * The event loop will return gracefully if the handler returns a status code
+ * of ACH_CANCELED. The event loop will terminate the program if it receives any
+ * status code other than ACH_CANCELED or ACH_OK.
+ *
+ * The event loop will also return if `sns_cx.shutdown=1` and any channel
+ * returns via message timeout or `ach_cancel()`.
+ *
+ * Finally, the event loop will return if the program receives any signal in
+ * `cancel_sigs`.
  *
  * @param[in,out]              handlers array of handler descriptors
  *
@@ -107,6 +116,7 @@ struct sns_evhandler {
  *                             ACH_EV_O_PERIODIC_INPUT and
  *                             ACH_EV_O_PERIODIC_TIMEOUT
  */
+// clang-format off
 enum ach_status ACH_WARN_UNUSED
 sns_evhandle(struct sns_evhandler *handlers,
              size_t n,
