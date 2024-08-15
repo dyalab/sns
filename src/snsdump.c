@@ -51,7 +51,7 @@
 
 struct cx {
     sns_msg_dump_fun *fun;
-    enum ach_status ret_code;
+    int run_once;
 };
 
 static enum ach_status
@@ -77,8 +77,7 @@ posarg(char *arg, int i)
 int
 main(int argc, char **argv)
 {
-    struct cx cx                 = {0};
-    enum ach_status opt_ret_code = ACH_OK;
+    struct cx cx = {0};
 
     /*-- Parse Args -- */
     int i = 0;
@@ -113,7 +112,7 @@ main(int argc, char **argv)
                 exit(EXIT_SUCCESS);
                 break;
             case 's':
-                opt_ret_code = ACH_CANCELED;
+                cx.run_once = 1;
                 break;
             default:
                 posarg(optarg, i++);
@@ -138,11 +137,9 @@ main(int argc, char **argv)
     SNS_LOG(LOG_INFO, "verbosity: %d\n", sns_cx.verbosity);
 
     /*-- Obtain Dump Function -- */
-    sns_msg_dump_fun *fun =
+    cx.fun =
         (sns_msg_dump_fun *)sns_msg_plugin_symbol(opt_type, "sns_msg_dump");
-    SNS_REQUIRE(fun, "Couldn't link dump function symbol'\n");
-    cx.fun      = fun;
-    cx.ret_code = opt_ret_code;
+    SNS_REQUIRE(cx.fun, "Couldn't link dump function symbol'\n");
 
     /*-- Open channel -- */
     ach_channel_t chan;
@@ -169,6 +166,6 @@ handler(void *cx_, void *msg, size_t msg_size)
     (void)msg_size;
     sns_msg_dump_fun *fun = cx->fun;
     (fun)(stdout, msg);
-    if (cx->ret_code == ACH_CANCELED) sns_cx.shutdown = 1;
-    return cx->ret_code;
+    if (cx->run_once) sns_cx.shutdown = 1;
+    return cx->run_once ? ACH_CANCELED : ACH_OK;
 }
