@@ -166,6 +166,5 @@ handler(void *cx_, void *msg, size_t msg_size)
     (void)msg_size;
     sns_msg_dump_fun *fun = cx->fun;
     (fun)(stdout, msg);
-    if (cx->run_once) sns_cx.shutdown = 1;
     return cx->run_once ? ACH_CANCELED : ACH_OK;
 }
