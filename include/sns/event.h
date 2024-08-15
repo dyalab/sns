@@ -84,11 +84,10 @@ struct sns_evhandler {
 /**
  * Event loop for handling multiple channels.
  *
- * The event loop will return gracefully if the handler returns a status code
- * of ACH_CANCELED. The event loop will terminate the program if the handler
- * returns any status code other than ACH_CANCELED or ACH_OK. Additionally, the
- * event loop will terminate the program if ach returns an unrecoverable error
- * code.
+ * Handlers must return status codes ACH_OK or ACH_CANCELED. The event loop
+ * continues if the handler returns ACH_OK and returns if the handler returns
+ * ACH_CANCELED. Additionally, the event loop will terminate the program if ach
+ * returns an unrecoverable error code.
  *
  * The event loop will also return if `sns_cx.shutdown=1` and any channel
  * returns via message, timeout, or `ach_cancel()`.
