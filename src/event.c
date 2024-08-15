@@ -98,12 +98,11 @@ sns_evhandle(struct sns_evhandler *handlers, size_t n,
         sns_sigcancel(chans, cancel_sigs);
     }
 
-    enum ach_status r = ACH_OK;
     if ((n == 1 && !periodic_handler) || (n == 0 && periodic_handler)) {
         /* special case single channel so we can handle userspace */
         while (!sns_cx.shutdown) {
             errno             = 0;
-            r                 = sns_evhandle_impl(
+            enum ach_status r = sns_evhandle_impl(
                 handlers, handlers->channel, period,
                 handlers->ach_options | ACH_O_RELTIME | ACH_O_WAIT);
             if (sns_cx.shutdown) break;
@@ -125,8 +124,9 @@ sns_evhandle(struct sns_evhandler *handlers, size_t n,
 
         while (!sns_cx.shutdown) {
             errno = 0;
-            r     = ach_evhandle(ach_handlers, n, period, periodic_handler,
-                                 periodic_context, options);
+            enum ach_status r =
+                ach_evhandle(ach_handlers, n, period, periodic_handler,
+                             periodic_context, options);
             if (sns_cx.shutdown) break;
             check_evhandle_result(r);
             if (ach_status_match(r, ACH_MASK_CANCELED)) break;
