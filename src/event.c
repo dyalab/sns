@@ -57,6 +57,9 @@ sns_evhandle_impl(struct sns_evhandler *cx, ach_channel_t *channel,
         assert(buf);
         r = cx->handler(cx->context, buf, frame_size);
         aa_mem_region_local_pop(buf);
+    } else if (ach_status_match(r, ACH_MASK_TIMEOUT | ACH_MASK_STALE_FRAMES)) {
+        assert(NULL == buf);
+        r = ACH_OK;
     } else {
         assert(NULL == buf);
     }
@@ -74,10 +77,9 @@ sns_evhandle_fun(void *_cx, ach_channel_t *channel)
 static void
 check_evhandle_result(enum ach_status r)
 {
-    SNS_REQUIRE(
-        ach_status_match(r, ACH_MASK_OK | ACH_MASK_CANCELED | ACH_MASK_TIMEOUT),
-        "asdf Could not handle events: %s, %s\n", ach_result_to_string(r),
-        strerror(errno));
+    SNS_REQUIRE(ach_status_match(r, ACH_MASK_OK | ACH_MASK_CANCELED),
+                "Could not handle event: %s, %s\n", ach_result_to_string(r),
+                strerror(errno));
 }
 enum ach_status ACH_WARN_UNUSED
 sns_evhandle(struct sns_evhandler *handlers, size_t n,
@@ -105,8 +107,10 @@ sns_evhandle(struct sns_evhandler *handlers, size_t n,
                 handlers->ach_options | ACH_O_RELTIME | ACH_O_WAIT);
             if (sns_cx.shutdown) break;
             check_evhandle_result(r);
+            if (ach_status_match(r, ACH_MASK_CANCELED)) break;
             if (periodic_handler) {
-                periodic_handler(periodic_context);
+                r = periodic_handler(periodic_context);
+                if (ach_status_match(r, ACH_MASK_CANCELED)) break;
             }
         }
     } else {
@@ -125,6 +129,7 @@ sns_evhandle(struct sns_evhandler *handlers, size_t n,
                              periodic_context, options);
             if (sns_cx.shutdown) break;
             check_evhandle_result(r);
+            if (ach_status_match(r, ACH_MASK_CANCELED)) break;
         }
     }
 
