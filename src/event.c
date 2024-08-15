@@ -57,7 +57,7 @@ sns_evhandle_impl(struct sns_evhandler *cx, ach_channel_t *channel,
         assert(buf);
         r = cx->handler(cx->context, buf, frame_size);
         aa_mem_region_local_pop(buf);
-    } else if (ach_status_match(r, ACH_TIMEOUT | ACH_MASK_STALE_FRAMES)) {
+    } else if (ach_status_match(r, ACH_MASK_TIMEOUT | ACH_MASK_STALE_FRAMES)) {
         assert(NULL == buf);
         r = ACH_OK;
     } else {
