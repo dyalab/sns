@@ -35,6 +35,11 @@ libsns_msg_joystick_la_SOURCES = src/msg_plugin.c
 libsns_msg_joystick_la_CFLAGS = $(CFLAGS) -DSNS_MSG_PLUGIN_TYPE=sns_msg_joystick
 libsns_msg_joystick_la_LIBADD = libsns.la
 
+lib_LTLIBRARIES += libsns_msg_log.la
+libsns_msg_log_la_SOURCES = src/msg_plugin.c
+libsns_msg_log_la_CFLAGS = $(CFLAGS) -DSNS_MSG_PLUGIN_TYPE=sns_msg_log
+libsns_msg_log_la_LIBADD = libsns.la
+
 lib_LTLIBRARIES += libsns_msg_motor_ref.la
 libsns_msg_motor_ref_la_SOURCES = src/msg_plugin.c
 libsns_msg_motor_ref_la_CFLAGS = $(CFLAGS) -DSNS_MSG_PLUGIN_TYPE=sns_msg_motor_ref
@@ -69,7 +74,6 @@ lib_LTLIBRARIES += libsns_msg_tf_dx.la
 libsns_msg_tf_dx_la_SOURCES = src/msg_plugin.c
 libsns_msg_tf_dx_la_CFLAGS = $(CFLAGS) -DSNS_MSG_PLUGIN_TYPE=sns_msg_tf_dx
 libsns_msg_tf_dx_la_LIBADD = libsns.la
-
 
 lib_LTLIBRARIES += libsns_msg_sdh_tactile.la
 libsns_msg_sdh_tactile_la_SOURCES = src/msg_plugin.c

@@ -544,3 +544,43 @@ sns_msg_joystick_plot_sample(const struct sns_msg_joystick *msg,
 
     if (sample_size) *sample_size = msg->header.n;
 }
+
+void
+sns_msg_log_dump(FILE *out, const struct sns_msg_log *msg)
+{
+    dump_header(out, &msg->header, "log");
+    switch (msg->priority) {
+        case LOG_ALERT:
+            fprintf(out, "[ALERT] ");
+            break;
+        case LOG_CRIT:
+            fprintf(out, "[CRITICAL] ");
+            break;
+        case LOG_ERR:
+            fprintf(out, "[ERROR] ");
+            break;
+        case LOG_WARNING:
+            fprintf(out, "[WARNING] ");
+            break;
+        case LOG_NOTICE:
+            fprintf(out, "[NOTICE] ");
+            break;
+        case LOG_INFO:
+            fprintf(out, "[INFO] ");
+            break;
+        case LOG_DEBUG:
+            fprintf(out, "[DEBUG] ");
+            break;
+        default:
+            break;
+    }
+    fprintf(out, "%s\n", msg->text);
+}
+
+void
+sns_msg_log_plot_sample(const struct sns_msg_log *msg, double **sample_ptr,
+                        char ***sample_labels, size_t *sample_size)
+{
+    // Cannot plot log messages.
+    return;
+}
